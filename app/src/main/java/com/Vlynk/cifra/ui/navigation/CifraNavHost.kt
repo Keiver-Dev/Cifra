@@ -43,7 +43,7 @@ fun CifraNavHost(
 
         composable<VaultHome> {
             PlaceholderDestinationScreen(
-                title = "Bóveda Secreta (VaultHome)",
+                title = "Secret Vault (VaultHome)",
                 onBack = { navController.popBackStack() }
             )
         }
@@ -51,21 +51,21 @@ fun CifraNavHost(
         composable<NoteEditor> { backStackEntry ->
             val route = backStackEntry.toRoute<NoteEditor>()
             PlaceholderDestinationScreen(
-                title = "Editor de Notas (NoteEditor) - ID: ${route.noteId ?: "Nueva"}",
+                title = "Note Editor (NoteEditor) - ID: ${route.noteId ?: "New"}",
                 onBack = { navController.popBackStack() }
             )
         }
 
         composable<SetPin> {
             PlaceholderDestinationScreen(
-                title = "Configurar PIN (SetPin)",
+                title = "Set PIN (SetPin)",
                 onBack = { navController.popBackStack() }
             )
         }
 
         composable<Tools> {
             PlaceholderDestinationScreen(
-                title = "Herramientas (Tools)",
+                title = "Tools (Tools)",
                 onBack = { navController.popBackStack() }
             )
         }
@@ -94,13 +94,13 @@ private fun PlaceholderCalculatorScreen(
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "Calculadora (Inicio)",
+                text = "Calculator (Home)",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
             )
 
             Text(
-                text = "Navegación de prueba de Fase 1:",
+                text = "Phase 1 test navigation:",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -111,7 +111,7 @@ private fun PlaceholderCalculatorScreen(
                 onClick = onNavigateToVault,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Ir a Bóveda Secreta (VaultHome)")
+                Text("Go to Secret Vault (VaultHome)")
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -120,7 +120,7 @@ private fun PlaceholderCalculatorScreen(
                 onClick = onNavigateToNoteEditor,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Ir a Crear Nota (NoteEditor)")
+                Text("Go to Note Editor (NoteEditor)")
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -129,7 +129,7 @@ private fun PlaceholderCalculatorScreen(
                 onClick = onNavigateToSetPin,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Ir a Configurar PIN (SetPin)")
+                Text("Go to Set PIN (SetPin)")
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -138,7 +138,7 @@ private fun PlaceholderCalculatorScreen(
                 onClick = onNavigateToTools,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Ir a Herramientas (Tools)")
+                Text("Go to Tools (Tools)")
             }
         }
     }
@@ -167,7 +167,7 @@ private fun PlaceholderDestinationScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedButton(onClick = onBack) {
-                Text("Volver a Calculadora")
+                Text("Back to Calculator")
             }
         }
     }

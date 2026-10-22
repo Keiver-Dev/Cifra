@@ -3,8 +3,8 @@ package com.Vlynk.cifra.ui.navigation
 import kotlinx.serialization.Serializable
 
 /**
- * Destinos de navegación tipados usando Kotlinx Serialization
- * para Navigation Compose.
+ * Type-safe navigation routes using Kotlinx Serialization
+ * for Navigation Compose.
  */
 
 @Serializable
