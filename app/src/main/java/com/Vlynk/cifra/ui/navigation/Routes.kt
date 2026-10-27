@@ -27,3 +27,9 @@ data object VaultSettings
 
 @Serializable
 data object ChangePin
+
+@Serializable
+data object TipSplit
+
+@Serializable
+data object Discount

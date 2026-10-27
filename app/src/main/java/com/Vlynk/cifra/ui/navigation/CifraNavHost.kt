@@ -42,6 +42,9 @@ import com.Vlynk.cifra.ui.theme.ColorFog
 import com.Vlynk.cifra.ui.theme.ColorVoid
 import com.Vlynk.cifra.ui.pin.PinScreenMode
 import com.Vlynk.cifra.ui.pin.SetPinScreen
+import com.Vlynk.cifra.ui.tools.DiscountScreen
+import com.Vlynk.cifra.ui.tools.TipSplitScreen
+import com.Vlynk.cifra.ui.tools.ToolsScreen
 
 import androidx.navigation.NavDestination.Companion.hasRoute
 
@@ -156,10 +159,22 @@ fun CifraNavHost(
         }
 
         composable<Tools> {
-            PlaceholderDestinationScreen(
-                title = stringResource(R.string.tools_title),
-                subtitle = stringResource(R.string.tools_coming_soon),
-                onBack = { navController.popBackStack() }
+            ToolsScreen(
+                onNavigateToTipSplit = { navController.navigate(TipSplit) },
+                onNavigateToDiscount = { navController.navigate(Discount) },
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<TipSplit> {
+            TipSplitScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<Discount> {
+            DiscountScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
