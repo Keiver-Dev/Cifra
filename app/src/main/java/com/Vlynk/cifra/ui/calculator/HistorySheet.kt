@@ -173,3 +173,39 @@ fun HistorySheet(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, backgroundColor = 0xFF16181F)
+@Composable
+private fun HistorySheetPreview() {
+    com.Vlynk.cifra.ui.theme.CifraTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.history_title),
+                color = ColorPaper,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = "1 250 + 750",
+                    color = ColorMist,
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = "2 000",
+                    color = ColorPaper,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}

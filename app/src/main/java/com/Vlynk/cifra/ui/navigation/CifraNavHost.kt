@@ -21,7 +21,25 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.Vlynk.cifra.R
+import com.Vlynk.cifra.ui.theme.ColorAcidLime
+import com.Vlynk.cifra.ui.theme.ColorBone
+import com.Vlynk.cifra.ui.theme.ColorCarbon
+import com.Vlynk.cifra.ui.theme.ColorFog
+import com.Vlynk.cifra.ui.theme.ColorVoid
 import com.Vlynk.cifra.ui.pin.PinScreenMode
 import com.Vlynk.cifra.ui.pin.SetPinScreen
 
@@ -81,7 +99,26 @@ fun CifraNavHost(
             )
         }
 
-        composable<VaultHome> {
+        composable<VaultHome>(
+            enterTransition = {
+                fadeIn(animationSpec = tween(350)) + slideInVertically(
+                    animationSpec = tween(350),
+                    initialOffsetY = { it / 12 }
+                )
+            },
+            exitTransition = {
+                fadeOut(animationSpec = tween(250))
+            },
+            popEnterTransition = {
+                fadeIn(animationSpec = tween(250))
+            },
+            popExitTransition = {
+                fadeOut(animationSpec = tween(250)) + slideOutVertically(
+                    animationSpec = tween(250),
+                    targetOffsetY = { it / 12 }
+                )
+            }
+        ) {
             com.Vlynk.cifra.ui.vault.VaultHomeScreen(
                 onNoteClick = { noteId -> navController.navigate(NoteEditor(noteId)) },
                 onNavigateToCreate = { navController.navigate(NoteEditor(null)) },
@@ -120,7 +157,8 @@ fun CifraNavHost(
 
         composable<Tools> {
             PlaceholderDestinationScreen(
-                title = "Tools (Tools)",
+                title = stringResource(R.string.tools_title),
+                subtitle = stringResource(R.string.tools_coming_soon),
                 onBack = { navController.popBackStack() }
             )
         }
@@ -135,116 +173,52 @@ fun CifraNavHost(
 }
 
 @Composable
-private fun PlaceholderCalculatorScreen(
-    onNavigateToVault: () -> Unit,
-    onNavigateToNoteEditor: () -> Unit,
-    onNavigateToSetPin: () -> Unit,
-    onNavigateToTools: () -> Unit
-) {
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Cifra",
-                style = MaterialTheme.typography.displayMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "Calculator (Home)",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
-            )
-
-            Text(
-                text = "Phase 1 test navigation:",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = onNavigateToVault,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Go to Secret Vault (VaultHome)")
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = onNavigateToNoteEditor,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Go to Note Editor (NoteEditor)")
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = onNavigateToSetPin,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Go to Set PIN (SetPin)")
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = onNavigateToTools,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Go to Tools (Tools)")
-            }
-        }
-    }
-}
-
-@Composable
 private fun PlaceholderDestinationScreen(
     title: String,
+    subtitle: String = "",
     onBack: () -> Unit
 ) {
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(ColorVoid)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = title,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = ColorBone
+        )
+
+        if (subtitle.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = subtitle,
+                fontSize = 14.sp,
+                color = ColorFog
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = onBack,
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = ColorAcidLime,
+                contentColor = ColorVoid
+            )
         ) {
             Text(
-                text = title,
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary
+                text = stringResource(R.string.vault_settings_back),
+                fontWeight = FontWeight.Bold
             )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            OutlinedButton(onClick = onBack) {
-                Text("Back to Calculator")
-            }
         }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true, name = "Calculator Screen Preview")
-@Composable
-private fun PlaceholderCalculatorScreenPreview() {
-    MaterialTheme {
-        PlaceholderCalculatorScreen(
-            onNavigateToVault = {},
-            onNavigateToNoteEditor = {},
-            onNavigateToSetPin = {},
-            onNavigateToTools = {}
-        )
     }
 }
 
@@ -253,35 +227,57 @@ private fun VaultSettingsPlaceholderScreen(
     onChangePin: () -> Unit,
     onBack: () -> Unit
 ) {
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(ColorVoid)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(28.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(R.string.vault_settings_title),
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold,
+            color = ColorBone
+        )
+
+        Spacer(modifier = Modifier.height(36.dp))
+
+        Button(
+            onClick = onChangePin,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = ColorAcidLime,
+                contentColor = ColorVoid
+            )
         ) {
             Text(
-                text = "Ajustes del cofre",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary
+                text = stringResource(R.string.vault_settings_change_pin),
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                modifier = Modifier.padding(vertical = 4.dp)
             )
+        }
 
-            Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = onChangePin,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Cambiar PIN")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-                Text("Volver")
-            }
+        OutlinedButton(
+            onClick = onBack,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = ColorBone
+            )
+        ) {
+            Text(
+                text = stringResource(R.string.vault_settings_back),
+                fontSize = 15.sp,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
         }
     }
 }

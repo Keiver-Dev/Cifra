@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -78,6 +79,7 @@ fun CalculatorScreen(
             .fillMaxSize()
             .background(ColorVoid)
             .statusBarsPadding()
+            .navigationBarsPadding()
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val isLandscape = maxWidth > maxHeight
@@ -270,5 +272,46 @@ private fun VaultTriggerIcon(
             radius = 2.dp.toPx(),
             center = Offset(w / 2, h * 0.62f)
         )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, backgroundColor = 0xFF08090A)
+@Composable
+private fun CalculatorScreenPreview() {
+    com.Vlynk.cifra.ui.theme.CifraTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(ColorVoid)
+                .statusBarsPadding()
+                .navigationBarsPadding()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                TopBar(onHistoryClick = {})
+
+                Display(
+                    expression = "1 250 + 750",
+                    result = "2 000",
+                    error = null,
+                    errorRes = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                )
+
+                Keypad(
+                    onAction = {},
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1.6f)
+                        .padding(bottom = 8.dp)
+                )
+            }
+        }
     }
 }
