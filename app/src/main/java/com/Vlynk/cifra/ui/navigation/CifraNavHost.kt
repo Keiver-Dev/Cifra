@@ -22,6 +22,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import androidx.compose.ui.tooling.preview.Preview
+import com.Vlynk.cifra.ui.pin.PinScreenMode
+import com.Vlynk.cifra.ui.pin.SetPinScreen
 
 @Composable
 fun CifraNavHost(
@@ -58,9 +60,21 @@ fun CifraNavHost(
         }
 
         composable<SetPin> {
-            PlaceholderDestinationScreen(
-                title = "Set PIN (SetPin)",
-                onBack = { navController.popBackStack() }
+            SetPinScreen(
+                mode = PinScreenMode.Setup,
+                onSuccess = {
+                    // First time: PIN created, go back to calculator
+                    navController.popBackStack(Calculator, inclusive = false)
+                },
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<ChangePin> {
+            SetPinScreen(
+                mode = PinScreenMode.Change,
+                onSuccess = { navController.popBackStack() },
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
@@ -72,8 +86,8 @@ fun CifraNavHost(
         }
 
         composable<VaultSettings> {
-            PlaceholderDestinationScreen(
-                title = "Vault Settings (VaultSettings)",
+            VaultSettingsPlaceholderScreen(
+                onChangePin = { navController.navigate(ChangePin) },
                 onBack = { navController.popBackStack() }
             )
         }
@@ -191,5 +205,43 @@ private fun PlaceholderCalculatorScreenPreview() {
             onNavigateToSetPin = {},
             onNavigateToTools = {}
         )
+    }
+}
+
+@Composable
+private fun VaultSettingsPlaceholderScreen(
+    onChangePin: () -> Unit,
+    onBack: () -> Unit
+) {
+    Scaffold { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Ajustes del cofre",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = onChangePin,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Cambiar PIN")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+                Text("Volver")
+            }
+        }
     }
 }
