@@ -482,4 +482,37 @@ class CalculatorViewModelTest {
 
         job.cancel()
     }
+
+    @Test
+    fun `when returning to calculator after vault access, display is clean with zero trace of PIN`() = runTest {
+        val vm = pinViewModel(correctPin = "5555")
+
+        val events = mutableListOf<CalculatorEvent>()
+        val job = launch { vm.events.toList(events) }
+
+        // Type PIN "5555" and press '='
+        vm.onAction(CalculatorAction.Digit(5))
+        vm.onAction(CalculatorAction.Digit(5))
+        vm.onAction(CalculatorAction.Digit(5))
+        vm.onAction(CalculatorAction.Digit(5))
+        vm.onAction(CalculatorAction.Equals)
+        advanceUntilIdle()
+
+        // Vault event emitted
+        assertTrue(events.any { it is CalculatorEvent.NavigateToVault })
+
+        // When user is in the vault (or returns from it), state is completely empty
+        val stateAfterNav = vm.uiState.value
+        assertEquals("Expression must be empty", "", stateAfterNav.expression)
+        assertEquals("Result must be empty", "", stateAfterNav.result)
+        assertNull("Error must be null", stateAfterNav.error)
+        assertFalse("isResultShowing must be false", stateAfterNav.isResultShowing)
+
+        // Typing a digit upon return starts a fresh expression cleanly
+        vm.onAction(CalculatorAction.Digit(8))
+        assertEquals("8", vm.uiState.value.expression)
+
+        job.cancel()
+    }
 }
+

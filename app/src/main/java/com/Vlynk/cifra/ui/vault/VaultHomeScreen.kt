@@ -79,6 +79,13 @@ fun VaultHomeScreen(
     onNavigateToTools: () -> Unit,
     onClose: () -> Unit
 ) {
+    VaultPrivacyEffect()
+
+    // Hardware/gesture back press returns directly to the Calculator
+    androidx.activity.compose.BackHandler {
+        onClose()
+    }
+
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 

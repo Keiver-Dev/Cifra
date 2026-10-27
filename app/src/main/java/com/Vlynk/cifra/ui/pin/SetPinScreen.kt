@@ -91,6 +91,8 @@ fun SetPinScreen(
         else PinViewModel.ChangeFactory
     )
 ) {
+    com.Vlynk.cifra.ui.vault.VaultPrivacyEffect()
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     // Navigate away once saved

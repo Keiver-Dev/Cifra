@@ -25,11 +25,30 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.Vlynk.cifra.ui.pin.PinScreenMode
 import com.Vlynk.cifra.ui.pin.SetPinScreen
 
+import androidx.navigation.NavDestination.Companion.hasRoute
+
 @Composable
 fun CifraNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
 ) {
+    // Stealth: close the vault automatically when the app transitions to the background
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner, navController) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_STOP) {
+                val currentDestination = navController.currentBackStackEntry?.destination
+                if (currentDestination != null && !currentDestination.hasRoute<Calculator>()) {
+                    navController.popBackStack(Calculator, inclusive = false)
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = Calculator,
@@ -48,7 +67,7 @@ fun CifraNavHost(
                 onNavigateToCreate = { navController.navigate(NoteEditor(null)) },
                 onNavigateToSettings = { navController.navigate(VaultSettings) },
                 onNavigateToTools = { navController.navigate(Tools) },
-                onClose = { navController.popBackStack() }
+                onClose = { navController.popBackStack(Calculator, inclusive = false) }
             )
         }
 

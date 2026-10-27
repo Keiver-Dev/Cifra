@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.Vlynk.cifra.CifraApp
+import com.Vlynk.cifra.R
 import com.Vlynk.cifra.data.repository.HistoryRepository
 import com.Vlynk.cifra.domain.calculator.CalculatorError
 import com.Vlynk.cifra.domain.usecase.EvaluateExpressionUseCase
@@ -447,12 +448,12 @@ class CalculatorViewModel(
                 }
             },
             onFailure = { throwable ->
-                val (errorMessage, errorResId) = when (throwable) {
-                    is CalculatorError.DivisionByZero -> "Can't divide by 0" to com.Vlynk.cifra.R.string.error_division_by_zero
-                    is CalculatorError.NumberTooLarge -> "Number too large" to com.Vlynk.cifra.R.string.error_number_too_large
-                    is CalculatorError.IncompleteExpression -> "Incomplete expression" to com.Vlynk.cifra.R.string.error_incomplete_expression
-                    is CalculatorError.InvalidExpression -> "Invalid format" to com.Vlynk.cifra.R.string.error_invalid_expression
-                    else -> (throwable.message ?: "Error") to com.Vlynk.cifra.R.string.error_generic
+                val (errorMessage: String, errorResId: Int) = when (throwable) {
+                    is CalculatorError.DivisionByZero -> "Can't divide by 0" to R.string.error_division_by_zero
+                    is CalculatorError.NumberTooLarge -> "Number too large" to R.string.error_number_too_large
+                    is CalculatorError.IncompleteExpression -> "Incomplete expression" to R.string.error_incomplete_expression
+                    is CalculatorError.InvalidExpression -> "Invalid format" to R.string.error_invalid_expression
+                    else -> (throwable.message ?: "Error") to R.string.error_generic
                 }
 
                 _uiState.update {

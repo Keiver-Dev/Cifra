@@ -74,6 +74,22 @@ fun NoteEditorScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
+    VaultPrivacyEffect()
+
+    // Auto-save when the app goes into the background
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_STOP) {
+                viewModel.saveOnBack()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     // Automatically navigate back once note is saved or deleted
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) {
