@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -160,7 +162,8 @@ fun NoteEditorScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Body Content Input
+            // Body Content Input — scrollable for very long notes
+            val scrollState = rememberScrollState()
             BasicTextField(
                 value = state.content,
                 onValueChange = viewModel::onContentChange,
@@ -184,6 +187,7 @@ fun NoteEditorScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
+                    .verticalScroll(scrollState)
             )
 
             HorizontalDivider(color = ColorSmoke.copy(alpha = 0.4f))

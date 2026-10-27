@@ -20,6 +20,8 @@
     <string name="vault_search_placeholder">Search your notes</string>
     <string name="vault_empty_title">No notes yet</string>
     <string name="vault_empty_subtitle">Tap + New note to store your first secret note.</string>
+    <string name="vault_no_results">No notes matching &#8220;%1$s&#8221;</string>
+    <string name="vault_swipe_to_delete">Swipe left to delete</string>
     <string name="vault_new_note">+ New note</string>
     <string name="vault_tab_notes">Notes</string>
     <string name="vault_tab_tools">Tools</string>
