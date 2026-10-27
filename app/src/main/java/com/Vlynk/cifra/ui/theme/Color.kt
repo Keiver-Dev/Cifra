@@ -2,61 +2,58 @@ package com.Vlynk.cifra.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Light Theme Palette
-val PrimaryLight = Color(0xFF00668B)
-val OnPrimaryLight = Color(0xFFFFFFFF)
-val PrimaryContainerLight = Color(0xFFC3E8FF)
-val OnPrimaryContainerLight = Color(0xFF001E2D)
+// Cifra Design System Palette (from Theme.css)
+val ColorVoid = Color(0xFF08090A)
+val ColorCarbon = Color(0xFF0F1011)
+val ColorObsidian = Color(0xFF161718)
+val ColorGraphite = Color(0xFF23252A)
+val ColorSmoke = Color(0xFF383B3F)
+val ColorAsh = Color(0xFF62666D)
+val ColorFog = Color(0xFF8A8F98)
+val ColorMist = Color(0xFFD0D6E0)
+val ColorBone = Color(0xFFE5E5E6)
+val ColorPaper = Color(0xFFFFFFFF)
 
-val SecondaryLight = Color(0xFF4E606E)
-val OnSecondaryLight = Color(0xFFFFFFFF)
-val SecondaryContainerLight = Color(0xFFD1E5F5)
-val OnSecondaryContainerLight = Color(0xFF0A1E29)
+// Accent Colors
+val ColorAcidLime = Color(0xFFE4F222)
+val ColorPulseGreen = Color(0xFF27A644)
+val ColorCoralRed = Color(0xFFEB5757)
+val ColorSignalTeal = Color(0xFF02B8CC)
+val ColorIrisViolet = Color(0xFF6366F1)
+val ColorLavender = Color(0xFF8B5CF6)
 
-val TertiaryLight = Color(0xFF615A7C)
-val OnTertiaryLight = Color(0xFFFFFFFF)
-val TertiaryContainerLight = Color(0xFFE7DEFF)
-val OnTertiaryContainerLight = Color(0xFF1D1736)
+// Semantic Theme Mappings
+val PrimaryDark = ColorAcidLime
+val OnPrimaryDark = ColorVoid
+val PrimaryContainerDark = ColorGraphite
+val OnPrimaryContainerDark = ColorBone
 
-val BackgroundLight = Color(0xFFFBFCFF)
-val OnBackgroundLight = Color(0xFF191C1E)
-val SurfaceLight = Color(0xFFFBFCFF)
-val OnSurfaceLight = Color(0xFF191C1E)
-val SurfaceVariantLight = Color(0xFFDCE3E9)
-val OnSurfaceVariantLight = Color(0xFF40484D)
+val SecondaryDark = ColorMist
+val OnSecondaryDark = ColorVoid
+val SecondaryContainerDark = ColorObsidian
+val OnSecondaryContainerDark = ColorBone
 
-val ErrorLight = Color(0xFFBA1A1A)
-val OnErrorLight = Color(0xFFFFFFFF)
+val TertiaryDark = ColorSignalTeal
+val OnTertiaryDark = ColorVoid
+val TertiaryContainerDark = ColorGraphite
+val OnTertiaryContainerDark = ColorMist
 
-// Dark Theme Palette (Sleek Calculator & Vault Aesthetic)
-val PrimaryDark = Color(0xFF7BD0FF)
-val OnPrimaryDark = Color(0xFF00344A)
-val PrimaryContainerDark = Color(0xFF004C6A)
-val OnPrimaryContainerDark = Color(0xFFC3E8FF)
+val BackgroundDark = ColorVoid
+val OnBackgroundDark = ColorPaper
+val SurfaceDark = ColorObsidian
+val OnSurfaceDark = ColorBone
+val SurfaceVariantDark = ColorCarbon
+val OnSurfaceVariantDark = ColorFog
 
-val SecondaryDark = Color(0xFFB5C9D8)
-val OnSecondaryDark = Color(0xFF20323F)
-val SecondaryContainerDark = Color(0xFF374956)
-val OnSecondaryContainerDark = Color(0xFFD1E5F5)
+val ErrorDark = ColorCoralRed
+val OnErrorDark = ColorPaper
 
-val TertiaryDark = Color(0xFFCBC1E9)
-val OnTertiaryDark = Color(0xFF322C4C)
-val TertiaryContainerDark = Color(0xFF494263)
-val OnTertiaryContainerDark = Color(0xFFE7DEFF)
-
-val BackgroundDark = Color(0xFF111416)
-val OnBackgroundDark = Color(0xFFE1E2E5)
-val SurfaceDark = Color(0xFF111416)
-val OnSurfaceDark = Color(0xFFE1E2E5)
-val SurfaceVariantDark = Color(0xFF40484D)
-val OnSurfaceVariantDark = Color(0xFFC0C7CD)
-
-val ErrorDark = Color(0xFFFFB4AB)
-val OnErrorDark = Color(0xFF690005)
-
-// Calculator & Accent Colors
-val AccentOrange = Color(0xFFFF9500)
-val KeypadBgLight = Color(0xFFF1F3F5)
-val KeypadBgDark = Color(0xFF1E2124)
-val KeypadActionLight = Color(0xFFE2E6EA)
-val KeypadActionDark = Color(0xFF2C3136)
+// Keypad Colors
+val KeypadNumberBg = ColorObsidian
+val KeypadNumberText = ColorPaper
+val KeypadOperatorBg = ColorGraphite
+val KeypadOperatorText = ColorMist
+val KeypadActionBg = ColorObsidian
+val KeypadActionText = ColorMist
+val KeypadEqualsBg = ColorAcidLime
+val KeypadEqualsText = ColorVoid

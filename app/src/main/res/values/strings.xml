@@ -1,3 +1,23 @@
 <resources>
     <string name="app_name">Cifra</string>
+
+    <!-- Calculator Errors -->
+    <string name="error_division_by_zero">Can\'t divide by 0</string>
+    <string name="error_incomplete_expression">Incomplete expression</string>
+    <string name="error_invalid_expression">Invalid format</string>
+    <string name="error_number_too_large">Number too large</string>
+    <string name="error_generic">Error</string>
+
+    <!-- Calculator Screen -->
+    <string name="calculator_title">Cifra</string>
+    <string name="history_title">History</string>
+    <string name="history_clear_all">Clear all</string>
+    <string name="history_empty">No history yet</string>
+    <string name="history_tap_to_reuse">Tap a result to reuse it</string>
+
+    <!-- Accessibility Descriptions -->
+    <string name="desc_history">Calculation history</string>
+    <string name="desc_backspace">Backspace</string>
+    <string name="desc_clear">Clear</string>
+    <string name="desc_equals">Equals</string>
 </resources>

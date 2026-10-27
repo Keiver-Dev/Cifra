@@ -1,14 +1,35 @@
 package com.Vlynk.cifra.di
 
 import android.content.Context
+import com.Vlynk.cifra.data.repository.HistoryRepository
+import com.Vlynk.cifra.domain.calculator.Evaluator
+import com.Vlynk.cifra.domain.calculator.NumberFormatter
+import com.Vlynk.cifra.domain.usecase.EvaluateExpressionUseCase
 
 /**
  * Manual dependency injection container for the application.
- * Will be populated in each phase with Room database,
- * DataStore preferences, repositories, and use cases.
+ * Manages singleton instances of repositories, use cases, and app-level dependencies.
  */
 class AppContainer(
     val context: Context
 ) {
-    // Dependencies to be initialized in upcoming phases
+    val historyRepository: HistoryRepository by lazy {
+        HistoryRepository()
+    }
+
+    val evaluator: Evaluator by lazy {
+        Evaluator()
+    }
+
+    val numberFormatter: NumberFormatter by lazy {
+        NumberFormatter()
+    }
+
+    val evaluateExpressionUseCase: EvaluateExpressionUseCase by lazy {
+        EvaluateExpressionUseCase(
+            evaluator = evaluator,
+            formatter = numberFormatter,
+            historyRepository = historyRepository
+        )
+    }
 }
