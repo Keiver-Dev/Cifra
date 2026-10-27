@@ -21,6 +21,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun CifraNavHost(
@@ -170,5 +171,18 @@ private fun PlaceholderDestinationScreen(
                 Text("Back to Calculator")
             }
         }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Calculator Screen Preview")
+@Composable
+private fun PlaceholderCalculatorScreenPreview() {
+    MaterialTheme {
+        PlaceholderCalculatorScreen(
+            onNavigateToVault = {},
+            onNavigateToNoteEditor = {},
+            onNavigateToSetPin = {},
+            onNavigateToTools = {}
+        )
     }
 }
