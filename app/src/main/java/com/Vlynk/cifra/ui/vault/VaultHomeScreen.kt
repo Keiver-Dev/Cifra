@@ -1,5 +1,7 @@
 package com.Vlynk.cifra.ui.vault
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -30,19 +33,25 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,6 +65,7 @@ import com.Vlynk.cifra.ui.theme.ColorAcidLime
 import com.Vlynk.cifra.ui.theme.ColorAsh
 import com.Vlynk.cifra.ui.theme.ColorBone
 import com.Vlynk.cifra.ui.theme.ColorCarbon
+import com.Vlynk.cifra.ui.theme.ColorCoralRed
 import com.Vlynk.cifra.ui.theme.ColorFog
 import com.Vlynk.cifra.ui.theme.ColorGraphite
 import com.Vlynk.cifra.ui.theme.ColorMist
@@ -70,6 +80,7 @@ import java.util.Locale
 /**
  * Vault home screen displaying secret notes, search, deletion with undo, and navigation.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VaultHomeScreen(
     modifier: Modifier = Modifier,
@@ -176,18 +187,20 @@ fun VaultHomeScreen(
                             text = if (state.searchQuery.isBlank()) {
                                 stringResource(R.string.vault_empty_title)
                             } else {
-                                "No notes matching \"${state.searchQuery}\""
+                                stringResource(R.string.vault_no_results, state.searchQuery)
                             },
                             color = ColorPaper,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = stringResource(R.string.vault_empty_subtitle),
-                            color = ColorFog,
-                            fontSize = 14.sp
-                        )
+                        if (state.searchQuery.isBlank()) {
+                            Text(
+                                text = stringResource(R.string.vault_empty_subtitle),
+                                color = ColorFog,
+                                fontSize = 14.sp
+                            )
+                        }
                     }
                 }
             } else {
@@ -200,9 +213,10 @@ fun VaultHomeScreen(
                         items = state.notes,
                         key = { it.id }
                     ) { note ->
-                        NoteItemRow(
+                        SwipeableNoteItem(
                             note = note,
-                            onClick = { onNoteClick(note.id) }
+                            onClick = { onNoteClick(note.id) },
+                            onDelete = { viewModel.onDelete(note) }
                         )
                     }
                 }
@@ -390,6 +404,75 @@ private fun NoteItemRow(
 
         Spacer(modifier = Modifier.height(10.dp))
         HorizontalDivider(color = ColorSmoke.copy(alpha = 0.4f))
+    }
+}
+
+/**
+ * Swipeable wrapper around [NoteItemRow] that reveals a red delete background
+ * on a right-to-left (EndToStart) swipe and triggers [onDelete] on completion.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SwipeableNoteItem(
+    note: Note,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                onDelete()
+                true
+            } else {
+                false
+            }
+        },
+        positionalThreshold = { totalDistance -> totalDistance * 0.4f }
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        modifier = modifier,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            val fraction = dismissState.progress
+            val bgColor by animateColorAsState(
+                targetValue = if (fraction > 0.05f) ColorCoralRed.copy(alpha = (fraction * 2f).coerceAtMost(1f))
+                else Color.Transparent,
+                label = "swipe_bg"
+            )
+            val scale by animateFloatAsState(
+                targetValue = if (fraction > 0.1f) 0.85f + (fraction * 0.15f).coerceAtMost(0.15f) else 0.75f,
+                label = "swipe_icon_scale"
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(bgColor, RoundedCornerShape(8.dp))
+                    .padding(end = 20.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Box(modifier = Modifier.scale(scale)) {
+                    TrashIconSmall(tint = ColorPaper, modifier = Modifier.size(22.dp))
+                }
+            }
+        }
+    ) {
+        NoteItemRow(note = note, onClick = onClick)
+    }
+}
+
+@Composable
+private fun TrashIconSmall(tint: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val stroke = 2.dp.toPx()
+        val w = size.width; val h = size.height
+        drawLine(tint, Offset(w * 0.15f, h * 0.25f), Offset(w * 0.85f, h * 0.25f), stroke, StrokeCap.Round)
+        drawLine(tint, Offset(w * 0.35f, h * 0.15f), Offset(w * 0.65f, h * 0.15f), stroke, StrokeCap.Round)
+        drawLine(tint, Offset(w * 0.25f, h * 0.25f), Offset(w * 0.3f, h * 0.9f), stroke, StrokeCap.Round)
+        drawLine(tint, Offset(w * 0.3f, h * 0.9f), Offset(w * 0.7f, h * 0.9f), stroke, StrokeCap.Round)
+        drawLine(tint, Offset(w * 0.75f, h * 0.25f), Offset(w * 0.7f, h * 0.9f), stroke, StrokeCap.Round)
     }
 }
 
