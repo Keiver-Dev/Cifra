@@ -60,8 +60,40 @@
     <string name="vault_settings_title">Ajustes del cofre</string>
     <string name="vault_settings_change_pin">Cambiar PIN</string>
     <string name="vault_settings_back">Volver</string>
+
+    <!-- Tools menu -->
     <string name="tools_title">Herramientas</string>
-    <string name="tools_coming_soon">Próximamente: división de cuentas y conversor de unidades.</string>
+    <string name="tools_subtitle">Calculadoras útiles para tu día a día</string>
+    <string name="tools_tip_split_title">Propina y cuenta</string>
+    <string name="tools_tip_split_desc">Divide la cuenta entre varias personas con propina</string>
+    <string name="tools_discount_title">Descuento</string>
+    <string name="tools_discount_desc">Calcula el precio final con descuento y el ahorro</string>
+
+    <!-- TipSplit screen -->
+    <string name="tip_title">Propina y cuenta</string>
+    <string name="tip_label_total">Total de la cuenta</string>
+    <string name="tip_label_tip_pct">Propina (%)</string>
+    <string name="tip_label_people">Número de personas</string>
+    <string name="tip_hint_amount">0.00</string>
+    <string name="tip_hint_percent">15</string>
+    <string name="tip_hint_people">2</string>
+    <string name="tip_result_per_person">Por persona</string>
+    <string name="tip_result_tip_total">Total propina</string>
+    <string name="tip_result_grand_total">Total final</string>
+    <string name="tip_error_invalid">Introduce valores válidos</string>
+    <string name="tip_error_people_zero">Las personas deben ser ≥ 1</string>
+
+    <!-- Discount screen -->
+    <string name="discount_title">Descuento</string>
+    <string name="discount_label_price">Precio original</string>
+    <string name="discount_label_pct">Descuento (%)</string>
+    <string name="discount_hint_price">0.00</string>
+    <string name="discount_hint_pct">20</string>
+    <string name="discount_result_final">Precio final</string>
+    <string name="discount_result_saving">Ahorras</string>
+    <string name="discount_error_invalid">Introduce valores válidos</string>
+    <string name="discount_error_pct_range">El descuento debe estar entre 0 y 100 %</string>
+
 
     <!-- Accessibility Descriptions -->
     <string name="desc_history">Calculation history</string>
