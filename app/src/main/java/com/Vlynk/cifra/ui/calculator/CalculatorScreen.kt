@@ -23,6 +23,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -46,16 +47,31 @@ import com.Vlynk.cifra.ui.theme.ColorVoid
 /**
  * Main Calculator screen displaying formula Display, 4x5 Keypad, and History bottom sheet trigger.
  * Handles both portrait and landscape screen sizes responsively.
+ *
+ * Navigation is driven by [CalculatorEvent]s emitted by the ViewModel:
+ * - [CalculatorEvent.NavigateToVault]  — correct PIN entered.
+ * - [CalculatorEvent.NavigateToSetPin] — no PIN configured yet.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalculatorScreen(
     modifier: Modifier = Modifier,
     viewModel: CalculatorViewModel = viewModel(factory = CalculatorViewModel.Factory),
-    onNavigateToVault: () -> Unit = {}
+    onNavigateToVault: () -> Unit = {},
+    onNavigateToSetPin: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showHistorySheet by rememberSaveable { mutableStateOf(false) }
+
+    // Collect one-shot navigation events from the ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                CalculatorEvent.NavigateToVault  -> onNavigateToVault()
+                CalculatorEvent.NavigateToSetPin -> onNavigateToSetPin()
+            }
+        }
+    }
 
     Box(
         modifier = modifier
@@ -80,8 +96,7 @@ fun CalculatorScreen(
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
                         TopBar(
-                            onHistoryClick = { showHistorySheet = true },
-                            onVaultClick = onNavigateToVault
+                            onHistoryClick = { showHistorySheet = true }
                         )
                         Display(
                             expression = state.expression,
@@ -109,8 +124,7 @@ fun CalculatorScreen(
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     TopBar(
-                        onHistoryClick = { showHistorySheet = true },
-                        onVaultClick = onNavigateToVault
+                        onHistoryClick = { showHistorySheet = true }
                     )
 
                     Display(
@@ -152,7 +166,6 @@ fun CalculatorScreen(
 @Composable
 private fun TopBar(
     onHistoryClick: () -> Unit,
-    onVaultClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -166,47 +179,25 @@ private fun TopBar(
             text = stringResource(R.string.calculator_title),
             color = ColorPaper,
             fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.clickable { onVaultClick() }
+            fontWeight = FontWeight.Bold
         )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            // History button
-            Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = ColorObsidian,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clickable { onHistoryClick() }
+        // History button
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = ColorObsidian,
+            modifier = Modifier
+                .size(40.dp)
+                .clickable { onHistoryClick() }
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    HistoryIcon(
-                        tint = ColorBone,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-
-            // Vault temporary access button (until Phase 5 PIN trigger)
-            Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = ColorObsidian,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clickable { onVaultClick() }
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    VaultTriggerIcon(
-                        tint = com.Vlynk.cifra.ui.theme.ColorAcidLime,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
+                HistoryIcon(
+                    tint = ColorBone,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
     }

@@ -7,6 +7,9 @@ import com.Vlynk.cifra.domain.model.HistoryEntry
 import com.Vlynk.cifra.domain.usecase.EvaluateExpressionUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -28,6 +31,7 @@ class CalculatorViewModelTest {
     private lateinit var evaluateExpressionUseCase: EvaluateExpressionUseCase
     private lateinit var viewModel: CalculatorViewModel
 
+    // Default viewModel: no PIN configured (verifyPin always false, hasPinFlow = false)
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
@@ -47,6 +51,10 @@ class CalculatorViewModelTest {
     fun tearDown() {
         Dispatchers.resetMain()
     }
+
+    // -------------------------------------------------------------------------
+    // Existing arithmetic tests (unchanged behaviour)
+    // -------------------------------------------------------------------------
 
     @Test
     fun `initial state is blank expression and empty result`() {
@@ -290,4 +298,221 @@ class CalculatorViewModelTest {
 
         assertTrue(viewModel.uiState.value.history.isEmpty())
     }
+
+    // -------------------------------------------------------------------------
+    // PIN integration tests (5.3)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Helper — creates a ViewModel with a custom PIN verifier and hasPin state.
+     */
+    private fun pinViewModel(
+        correctPin: String? = null,   // null = no PIN stored
+        storedPinExists: Boolean = correctPin != null
+    ) = CalculatorViewModel(
+        evaluateExpressionUseCase = evaluateExpressionUseCase,
+        historyRepository = historyRepository,
+        verifyPin = { entered -> entered == correctPin },
+        hasPinFlow = flowOf(storedPinExists)
+    )
+
+    @Test
+    fun `equals with correct PIN emits NavigateToVault and clears display`() = runTest {
+        val vm = pinViewModel(correctPin = "1234")
+
+        val events = mutableListOf<CalculatorEvent>()
+        val job = launch { vm.events.toList(events) }
+
+        vm.onAction(CalculatorAction.Digit(1))
+        vm.onAction(CalculatorAction.Digit(2))
+        vm.onAction(CalculatorAction.Digit(3))
+        vm.onAction(CalculatorAction.Digit(4))
+        vm.onAction(CalculatorAction.Equals)
+        advanceUntilIdle()
+
+        assertTrue(
+            "Expected NavigateToVault event",
+            events.any { it is CalculatorEvent.NavigateToVault }
+        )
+        // Display must be clear — no evidence of PIN in the expression
+        val state = vm.uiState.value
+        assertEquals("", state.expression)
+        assertEquals("", state.result)
+        assertFalse(state.isResultShowing)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `equals with incorrect PIN evaluates normally without any hint`() = runTest {
+        val vm = pinViewModel(correctPin = "9999")
+
+        val events = mutableListOf<CalculatorEvent>()
+        val job = launch { vm.events.toList(events) }
+
+        // Type "1234" (wrong PIN) — should evaluate as the number 1 234
+        vm.onAction(CalculatorAction.Digit(1))
+        vm.onAction(CalculatorAction.Digit(2))
+        vm.onAction(CalculatorAction.Digit(3))
+        vm.onAction(CalculatorAction.Digit(4))
+        vm.onAction(CalculatorAction.Equals)
+        advanceUntilIdle()
+
+        // No navigation event emitted
+        assertTrue(
+            "No navigation event should be emitted for wrong PIN",
+            events.isEmpty()
+        )
+        // Result shows the number as a normal calculation
+        val state = vm.uiState.value
+        assertTrue("Expression must evaluate to a numeric result", state.isResultShowing)
+        assertTrue("Result must be non-empty", state.result.isNotEmpty())
+
+        job.cancel()
+    }
+
+    @Test
+    fun `equals with no PIN configured emits NavigateToSetPin and clears display`() = runTest {
+        val vm = pinViewModel(correctPin = null, storedPinExists = false)
+
+        val events = mutableListOf<CalculatorEvent>()
+        val job = launch { vm.events.toList(events) }
+
+        vm.onAction(CalculatorAction.Digit(4))
+        vm.onAction(CalculatorAction.Digit(5))
+        vm.onAction(CalculatorAction.Digit(6))
+        vm.onAction(CalculatorAction.Digit(7))
+        vm.onAction(CalculatorAction.Equals)
+        advanceUntilIdle()
+
+        assertTrue(
+            "Expected NavigateToSetPin event when no PIN is set",
+            events.any { it is CalculatorEvent.NavigateToSetPin }
+        )
+        val state = vm.uiState.value
+        assertEquals("", state.expression)
+        assertEquals("", state.result)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `pin check runs before arithmetic so a valid 4-digit number is tried as PIN first`() = runTest {
+        // PIN is "2000". Expression "2000" is also a valid number.
+        // Correct PIN → vault navigation, NOT arithmetic result.
+        val vm = pinViewModel(correctPin = "2000")
+
+        val events = mutableListOf<CalculatorEvent>()
+        val job = launch { vm.events.toList(events) }
+
+        vm.onAction(CalculatorAction.Digit(2))
+        vm.onAction(CalculatorAction.Digit(0))
+        vm.onAction(CalculatorAction.Digit(0))
+        vm.onAction(CalculatorAction.Digit(0))
+        vm.onAction(CalculatorAction.Equals)
+        advanceUntilIdle()
+
+        assertTrue(
+            "PIN check must run before arithmetic; should navigate to vault",
+            events.any { it is CalculatorEvent.NavigateToVault }
+        )
+        assertFalse(
+            "Arithmetic result must NOT be shown when PIN matched",
+            vm.uiState.value.isResultShowing
+        )
+
+        job.cancel()
+    }
+
+    @Test
+    fun `expression with operator is not treated as PIN even if short`() = runTest {
+        // "1+2" contains non-digit chars → plain arithmetic, no PIN path
+        val vm = pinViewModel(correctPin = "123")
+
+        val events = mutableListOf<CalculatorEvent>()
+        val job = launch { vm.events.toList(events) }
+
+        vm.onAction(CalculatorAction.Digit(1))
+        vm.onAction(CalculatorAction.Operator("+"))
+        vm.onAction(CalculatorAction.Digit(2))
+        vm.onAction(CalculatorAction.Equals)
+        advanceUntilIdle()
+
+        assertTrue("No navigation event for non-numeric expression", events.isEmpty())
+        assertTrue(vm.uiState.value.isResultShowing)
+        assertEquals("3", vm.uiState.value.result)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `three-digit expression is not treated as PIN (below 4 digit minimum)`() = runTest {
+        val vm = pinViewModel(correctPin = "123")
+
+        val events = mutableListOf<CalculatorEvent>()
+        val job = launch { vm.events.toList(events) }
+
+        vm.onAction(CalculatorAction.Digit(1))
+        vm.onAction(CalculatorAction.Digit(2))
+        vm.onAction(CalculatorAction.Digit(3))
+        vm.onAction(CalculatorAction.Equals)
+        advanceUntilIdle()
+
+        assertTrue("3-digit expression must not trigger PIN", events.isEmpty())
+        assertTrue(vm.uiState.value.isResultShowing)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `seven-digit expression is not treated as PIN (above 6 digit maximum)`() = runTest {
+        val vm = pinViewModel(correctPin = "1234567")
+
+        val events = mutableListOf<CalculatorEvent>()
+        val job = launch { vm.events.toList(events) }
+
+        "1234567".forEach { d ->
+            vm.onAction(CalculatorAction.Digit(d.digitToInt()))
+        }
+        vm.onAction(CalculatorAction.Equals)
+        advanceUntilIdle()
+
+        assertTrue("7-digit expression must not trigger PIN", events.isEmpty())
+        assertTrue(vm.uiState.value.isResultShowing)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `when returning to calculator after vault access, display is clean with zero trace of PIN`() = runTest {
+        val vm = pinViewModel(correctPin = "5555")
+
+        val events = mutableListOf<CalculatorEvent>()
+        val job = launch { vm.events.toList(events) }
+
+        // Type PIN "5555" and press '='
+        vm.onAction(CalculatorAction.Digit(5))
+        vm.onAction(CalculatorAction.Digit(5))
+        vm.onAction(CalculatorAction.Digit(5))
+        vm.onAction(CalculatorAction.Digit(5))
+        vm.onAction(CalculatorAction.Equals)
+        advanceUntilIdle()
+
+        // Vault event emitted
+        assertTrue(events.any { it is CalculatorEvent.NavigateToVault })
+
+        // When user is in the vault (or returns from it), state is completely empty
+        val stateAfterNav = vm.uiState.value
+        assertEquals("Expression must be empty", "", stateAfterNav.expression)
+        assertEquals("Result must be empty", "", stateAfterNav.result)
+        assertNull("Error must be null", stateAfterNav.error)
+        assertFalse("isResultShowing must be false", stateAfterNav.isResultShowing)
+
+        // Typing a digit upon return starts a fresh expression cleanly
+        vm.onAction(CalculatorAction.Digit(8))
+        assertEquals("8", vm.uiState.value.expression)
+
+        job.cancel()
+    }
 }
+

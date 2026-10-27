@@ -6,21 +6,52 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.Vlynk.cifra.CifraApp
+import com.Vlynk.cifra.R
 import com.Vlynk.cifra.data.repository.HistoryRepository
 import com.Vlynk.cifra.domain.calculator.CalculatorError
 import com.Vlynk.cifra.domain.usecase.EvaluateExpressionUseCase
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+// ---------------------------------------------------------------------------
+// Navigation events emitted by the ViewModel
+// ---------------------------------------------------------------------------
+
+sealed interface CalculatorEvent {
+    /** Correct PIN entered — navigate to the Vault home screen. */
+    data object NavigateToVault : CalculatorEvent
+    /** No PIN configured yet — navigate to PIN setup. */
+    data object NavigateToSetPin : CalculatorEvent
+}
+
 /**
  * ViewModel managing Calculator state and input validation rules.
+ *
+ * PIN integration (5.3):
+ * When `=` is pressed and the expression is purely numeric with 4–6 digits,
+ * the PIN verification happens **before** the arithmetic evaluation.
+ * - Correct PIN  → clear display, emit [CalculatorEvent.NavigateToVault].
+ * - No PIN set   → clear display, emit [CalculatorEvent.NavigateToSetPin].
+ * - Wrong PIN    → fall through to normal calculation; no hint of a vault.
+ *
+ * [verifyPin] and [hasPinFlow] are injected as lambdas/flows so the ViewModel
+ * remains fully testable without an Android Context.
  */
 class CalculatorViewModel(
     private val evaluateExpressionUseCase: EvaluateExpressionUseCase,
-    private val historyRepository: HistoryRepository
+    private val historyRepository: HistoryRepository,
+    /** Returns `true` if [pin] matches the stored hash. Defaults to always-false for tests that don't exercise the PIN path. */
+    private val verifyPin: suspend (String) -> Boolean = { false },
+    /** Emits whether a PIN has been configured. Defaults to `false` for non-PIN tests. */
+    private val hasPinFlow: Flow<Boolean> = flowOf(false)
 ) : ViewModel() {
 
     companion object {
@@ -31,7 +62,9 @@ class CalculatorViewModel(
                 val app = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as CifraApp)
                 CalculatorViewModel(
                     evaluateExpressionUseCase = app.container.evaluateExpressionUseCase,
-                    historyRepository = app.container.historyRepository
+                    historyRepository = app.container.historyRepository,
+                    verifyPin = app.container.verifyPinUseCase::invoke,
+                    hasPinFlow = app.container.pinRepository.hasPin()
                 )
             }
         }
@@ -40,12 +73,21 @@ class CalculatorViewModel(
     private val _uiState = MutableStateFlow(CalculatorUiState())
     val uiState: StateFlow<CalculatorUiState> = _uiState.asStateFlow()
 
+    private val _events = Channel<CalculatorEvent>(capacity = Channel.BUFFERED)
+    /** One-shot navigation events. Collect in the UI with `LaunchedEffect`. */
+    val events: Flow<CalculatorEvent> = _events.receiveAsFlow()
+
     init {
         viewModelScope.launch {
             historyRepository.history.collect { historyList ->
                 _uiState.update { it.copy(history = historyList) }
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        _events.close()
     }
 
     fun onAction(action: CalculatorAction) {
@@ -318,41 +360,43 @@ class CalculatorViewModel(
         }
     }
 
+    /**
+     * Handles the `=` press.
+     *
+     * PIN check happens FIRST, before any arithmetic:
+     * - Expression is purely digits, length 4–6 → treat as potential PIN.
+     * - No PIN stored → navigate to SetPin silently.
+     * - PIN correct   → clear display, navigate to Vault.
+     * - PIN wrong     → evaluate as a number (no feedback about vault).
+     * - Otherwise     → normal arithmetic evaluation.
+     */
     private fun handleEquals() {
-        val current = _uiState.value
-        val expr = current.expression.trim()
+        val expr = _uiState.value.expression.trim()
         if (expr.isEmpty()) return
 
-        val evaluationResult = evaluateExpressionUseCase(expr)
-
-        evaluationResult.fold(
-            onSuccess = { formattedResult ->
-                _uiState.update {
-                    it.copy(
-                        result = formattedResult,
-                        error = null,
-                        isResultShowing = true
-                    )
+        if (looksLikePin(expr)) {
+            // PIN path — async because DataStore reads are suspend
+            viewModelScope.launch {
+                val pinIsSet = hasPinFlow.first()
+                if (!pinIsSet) {
+                    // First run: guide user to set a PIN, leave no trace
+                    clearForNavigation()
+                    _events.send(CalculatorEvent.NavigateToSetPin)
+                    return@launch
                 }
-            },
-            onFailure = { throwable ->
-                val (errorMessage, errorResId) = when (throwable) {
-                    is CalculatorError.DivisionByZero -> "Can't divide by 0" to com.Vlynk.cifra.R.string.error_division_by_zero
-                    is CalculatorError.NumberTooLarge -> "Number too large" to com.Vlynk.cifra.R.string.error_number_too_large
-                    is CalculatorError.IncompleteExpression -> "Incomplete expression" to com.Vlynk.cifra.R.string.error_incomplete_expression
-                    is CalculatorError.InvalidExpression -> "Invalid format" to com.Vlynk.cifra.R.string.error_invalid_expression
-                    else -> (throwable.message ?: "Error") to com.Vlynk.cifra.R.string.error_generic
-                }
-
-                _uiState.update {
-                    it.copy(
-                        error = errorMessage,
-                        errorRes = errorResId,
-                        isResultShowing = false
-                    )
+                if (verifyPin(expr)) {
+                    // ✅ Correct PIN — open the vault without a trace
+                    clearForNavigation()
+                    _events.send(CalculatorEvent.NavigateToVault)
+                } else {
+                    // ❌ Wrong PIN — evaluate normally, zero hints
+                    evaluateNormally(expr)
                 }
             }
-        )
+        } else {
+            // Pure arithmetic — synchronous, no PIN involved
+            evaluateNormally(expr)
+        }
     }
 
     private fun handleReuseResult(result: String) {
@@ -368,6 +412,66 @@ class CalculatorViewModel(
 
     private fun handleClearHistory() {
         historyRepository.clear()
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * A string "looks like a PIN" if it consists entirely of digits and its
+     * length falls in the valid PIN range [4, 6].
+     * The check happens BEFORE arithmetic so that e.g. "1234" is tried as a PIN
+     * first and only falls through to arithmetic if the PIN is wrong.
+     */
+    private fun looksLikePin(expr: String): Boolean =
+        expr.length in 4..6 && expr.all { it.isDigit() }
+
+    /** Clears display state before navigating away so no data leaks into history. */
+    private fun clearForNavigation() {
+        _uiState.update {
+            it.copy(expression = "", result = "", error = null, isResultShowing = false)
+        }
+    }
+
+    private fun evaluateNormally(expr: String) {
+        val evaluationResult = evaluateExpressionUseCase(expr)
+
+        evaluationResult.fold(
+            onSuccess = { formattedResult ->
+                _uiState.update {
+                    it.copy(
+                        result = formattedResult,
+                        error = null,
+                        isResultShowing = true
+                    )
+                }
+            },
+            onFailure = { throwable ->
+                val errorMessage = when (throwable) {
+                    is CalculatorError.DivisionByZero -> "Can't divide by 0"
+                    is CalculatorError.NumberTooLarge -> "Number too large"
+                    is CalculatorError.IncompleteExpression -> "Incomplete expression"
+                    is CalculatorError.InvalidExpression -> "Invalid format"
+                    else -> throwable.message ?: "Error"
+                }
+                val errorResId = when (throwable) {
+                    is CalculatorError.DivisionByZero -> R.string.error_division_by_zero
+                    is CalculatorError.NumberTooLarge -> R.string.error_number_too_large
+                    is CalculatorError.IncompleteExpression -> R.string.error_incomplete_expression
+                    is CalculatorError.InvalidExpression -> R.string.error_invalid_expression
+                    else -> R.string.error_generic
+                }
+
+                _uiState.update {
+                    it.copy(
+                        error = errorMessage,
+                        errorRes = errorResId,
+                        isResultShowing = false
+                    )
+                }
+            }
+        )
     }
 
     private fun getCurrentNumberSegment(expr: String): String {

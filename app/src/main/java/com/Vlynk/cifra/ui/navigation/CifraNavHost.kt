@@ -22,12 +22,33 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import androidx.compose.ui.tooling.preview.Preview
+import com.Vlynk.cifra.ui.pin.PinScreenMode
+import com.Vlynk.cifra.ui.pin.SetPinScreen
+
+import androidx.navigation.NavDestination.Companion.hasRoute
 
 @Composable
 fun CifraNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
 ) {
+    // Stealth: close the vault automatically when the app transitions to the background
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner, navController) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_STOP) {
+                val currentDestination = navController.currentBackStackEntry?.destination
+                if (currentDestination != null && !currentDestination.hasRoute<Calculator>()) {
+                    navController.popBackStack(Calculator, inclusive = false)
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = Calculator,
@@ -35,7 +56,8 @@ fun CifraNavHost(
     ) {
         composable<Calculator> {
             com.Vlynk.cifra.ui.calculator.CalculatorScreen(
-                onNavigateToVault = { navController.navigate(VaultHome) }
+                onNavigateToVault = { navController.navigate(VaultHome) },
+                onNavigateToSetPin = { navController.navigate(SetPin) }
             )
         }
 
@@ -45,7 +67,7 @@ fun CifraNavHost(
                 onNavigateToCreate = { navController.navigate(NoteEditor(null)) },
                 onNavigateToSettings = { navController.navigate(VaultSettings) },
                 onNavigateToTools = { navController.navigate(Tools) },
-                onClose = { navController.popBackStack() }
+                onClose = { navController.popBackStack(Calculator, inclusive = false) }
             )
         }
 
@@ -58,9 +80,21 @@ fun CifraNavHost(
         }
 
         composable<SetPin> {
-            PlaceholderDestinationScreen(
-                title = "Set PIN (SetPin)",
-                onBack = { navController.popBackStack() }
+            SetPinScreen(
+                mode = PinScreenMode.Setup,
+                onSuccess = {
+                    // First time: PIN created, go back to calculator
+                    navController.popBackStack(Calculator, inclusive = false)
+                },
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<ChangePin> {
+            SetPinScreen(
+                mode = PinScreenMode.Change,
+                onSuccess = { navController.popBackStack() },
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
@@ -72,8 +106,8 @@ fun CifraNavHost(
         }
 
         composable<VaultSettings> {
-            PlaceholderDestinationScreen(
-                title = "Vault Settings (VaultSettings)",
+            VaultSettingsPlaceholderScreen(
+                onChangePin = { navController.navigate(ChangePin) },
                 onBack = { navController.popBackStack() }
             )
         }
@@ -191,5 +225,43 @@ private fun PlaceholderCalculatorScreenPreview() {
             onNavigateToSetPin = {},
             onNavigateToTools = {}
         )
+    }
+}
+
+@Composable
+private fun VaultSettingsPlaceholderScreen(
+    onChangePin: () -> Unit,
+    onBack: () -> Unit
+) {
+    Scaffold { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Ajustes del cofre",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = onChangePin,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Cambiar PIN")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+                Text("Volver")
+            }
+        }
     }
 }

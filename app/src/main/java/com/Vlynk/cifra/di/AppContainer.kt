@@ -3,15 +3,20 @@ package com.Vlynk.cifra.di
 import android.content.Context
 import androidx.room.Room
 import com.Vlynk.cifra.data.local.AppDatabase
+import com.Vlynk.cifra.data.prefs.PinHasher
+import com.Vlynk.cifra.data.prefs.PinStore
 import com.Vlynk.cifra.data.repository.HistoryRepository
 import com.Vlynk.cifra.data.repository.NoteRepository
 import com.Vlynk.cifra.data.repository.NoteRepositoryImpl
+import com.Vlynk.cifra.data.repository.PinRepository
 import com.Vlynk.cifra.domain.calculator.Evaluator
 import com.Vlynk.cifra.domain.calculator.NumberFormatter
 import com.Vlynk.cifra.domain.usecase.DeleteNoteUseCase
 import com.Vlynk.cifra.domain.usecase.EvaluateExpressionUseCase
 import com.Vlynk.cifra.domain.usecase.ObserveNotesUseCase
 import com.Vlynk.cifra.domain.usecase.SaveNoteUseCase
+import com.Vlynk.cifra.domain.usecase.SetPinUseCase
+import com.Vlynk.cifra.domain.usecase.VerifyPinUseCase
 
 /**
  * Manual dependency injection container for the application.
@@ -67,5 +72,26 @@ class AppContainer(
 
     val deleteNoteUseCase: DeleteNoteUseCase by lazy {
         DeleteNoteUseCase(noteRepository)
+    }
+
+    // --- PIN Security ---
+    val pinHasher: PinHasher by lazy {
+        PinHasher()
+    }
+
+    val pinStore: PinStore by lazy {
+        PinStore(context)
+    }
+
+    val pinRepository: PinRepository by lazy {
+        PinRepository(store = pinStore, hasher = pinHasher)
+    }
+
+    val setPinUseCase: SetPinUseCase by lazy {
+        SetPinUseCase(pinRepository)
+    }
+
+    val verifyPinUseCase: VerifyPinUseCase by lazy {
+        VerifyPinUseCase(pinRepository)
     }
 }

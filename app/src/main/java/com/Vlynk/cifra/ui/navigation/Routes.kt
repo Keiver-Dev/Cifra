@@ -24,3 +24,6 @@ data object Tools
 
 @Serializable
 data object VaultSettings
+
+@Serializable
+data object ChangePin
