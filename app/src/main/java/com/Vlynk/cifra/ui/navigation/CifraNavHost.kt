@@ -34,11 +34,8 @@ fun CifraNavHost(
         modifier = modifier
     ) {
         composable<Calculator> {
-            PlaceholderCalculatorScreen(
-                onNavigateToVault = { navController.navigate(VaultHome) },
-                onNavigateToNoteEditor = { navController.navigate(NoteEditor(null)) },
-                onNavigateToSetPin = { navController.navigate(SetPin) },
-                onNavigateToTools = { navController.navigate(Tools) }
+            com.Vlynk.cifra.ui.calculator.CalculatorScreen(
+                onNavigateToVault = { navController.navigate(VaultHome) }
             )
         }
 
