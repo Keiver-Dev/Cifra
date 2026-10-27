@@ -32,7 +32,27 @@ fun CifraNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
 ) {
-    // Stealth: close the vault automatically when the app transitions to the background
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    // Security & privacy (6.1): FLAG_SECURE while vault screens are open, cleared on Calculator
+    androidx.compose.runtime.DisposableEffect(navController) {
+        val listener = androidx.navigation.NavController.OnDestinationChangedListener { _, destination, _ ->
+            val isVaultActive = !destination.hasRoute<Calculator>()
+            val window = (context as? android.app.Activity)?.window
+            if (isVaultActive) {
+                window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+            } else {
+                window?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+            }
+        }
+        navController.addOnDestinationChangedListener(listener)
+        onDispose {
+            navController.removeOnDestinationChangedListener(listener)
+            (context as? android.app.Activity)?.window?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+        }
+    }
+
+    // Stealth (5.4): close the vault automatically when the app transitions to the background
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     androidx.compose.runtime.DisposableEffect(lifecycleOwner, navController) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
