@@ -448,12 +448,19 @@ class CalculatorViewModel(
                 }
             },
             onFailure = { throwable ->
-                val (errorMessage: String, errorResId: Int) = when (throwable) {
-                    is CalculatorError.DivisionByZero -> "Can't divide by 0" to R.string.error_division_by_zero
-                    is CalculatorError.NumberTooLarge -> "Number too large" to R.string.error_number_too_large
-                    is CalculatorError.IncompleteExpression -> "Incomplete expression" to R.string.error_incomplete_expression
-                    is CalculatorError.InvalidExpression -> "Invalid format" to R.string.error_invalid_expression
-                    else -> (throwable.message ?: "Error") to R.string.error_generic
+                val errorMessage = when (throwable) {
+                    is CalculatorError.DivisionByZero -> "Can't divide by 0"
+                    is CalculatorError.NumberTooLarge -> "Number too large"
+                    is CalculatorError.IncompleteExpression -> "Incomplete expression"
+                    is CalculatorError.InvalidExpression -> "Invalid format"
+                    else -> throwable.message ?: "Error"
+                }
+                val errorResId = when (throwable) {
+                    is CalculatorError.DivisionByZero -> R.string.error_division_by_zero
+                    is CalculatorError.NumberTooLarge -> R.string.error_number_too_large
+                    is CalculatorError.IncompleteExpression -> R.string.error_incomplete_expression
+                    is CalculatorError.InvalidExpression -> R.string.error_invalid_expression
+                    else -> R.string.error_generic
                 }
 
                 _uiState.update {
