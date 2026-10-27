@@ -80,7 +80,8 @@ fun CalculatorScreen(
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
                         TopBar(
-                            onHistoryClick = { showHistorySheet = true }
+                            onHistoryClick = { showHistorySheet = true },
+                            onVaultClick = onNavigateToVault
                         )
                         Display(
                             expression = state.expression,
@@ -108,7 +109,8 @@ fun CalculatorScreen(
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     TopBar(
-                        onHistoryClick = { showHistorySheet = true }
+                        onHistoryClick = { showHistorySheet = true },
+                        onVaultClick = onNavigateToVault
                     )
 
                     Display(
@@ -150,6 +152,7 @@ fun CalculatorScreen(
 @Composable
 private fun TopBar(
     onHistoryClick: () -> Unit,
+    onVaultClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -163,24 +166,47 @@ private fun TopBar(
             text = stringResource(R.string.calculator_title),
             color = ColorPaper,
             fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.clickable { onVaultClick() }
         )
 
-        Surface(
-            shape = RoundedCornerShape(10.dp),
-            color = ColorObsidian,
-            modifier = Modifier
-                .size(40.dp)
-                .clickable { onHistoryClick() }
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // History button
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = ColorObsidian,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clickable { onHistoryClick() }
             ) {
-                HistoryIcon(
-                    tint = ColorBone,
-                    modifier = Modifier.size(20.dp)
-                )
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    HistoryIcon(
+                        tint = ColorBone,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
+            // Vault temporary access button (until Phase 5 PIN trigger)
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = ColorObsidian,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clickable { onVaultClick() }
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    VaultTriggerIcon(
+                        tint = com.Vlynk.cifra.ui.theme.ColorAcidLime,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
         }
     }
@@ -215,6 +241,43 @@ private fun HistoryIcon(
             end = Offset(center.x + radius * 0.45f, center.y),
             strokeWidth = strokeWidth,
             cap = StrokeCap.Round
+        )
+    }
+}
+
+@Composable
+private fun VaultTriggerIcon(
+    tint: Color,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier) {
+        val stroke = 1.8.dp.toPx()
+        val w = size.width
+        val h = size.height
+
+        // Lock shackle
+        drawArc(
+            color = tint,
+            startAngle = 180f,
+            sweepAngle = 180f,
+            useCenter = false,
+            topLeft = Offset(w * 0.25f, h * 0.1f),
+            size = androidx.compose.ui.geometry.Size(w * 0.5f, h * 0.45f),
+            style = Stroke(width = stroke, cap = StrokeCap.Round)
+        )
+        // Lock body
+        drawRoundRect(
+            color = tint,
+            topLeft = Offset(w * 0.15f, h * 0.4f),
+            size = androidx.compose.ui.geometry.Size(w * 0.7f, h * 0.52f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()),
+            style = Stroke(width = stroke)
+        )
+        // Keyhole
+        drawCircle(
+            color = tint,
+            radius = 2.dp.toPx(),
+            center = Offset(w / 2, h * 0.62f)
         )
     }
 }

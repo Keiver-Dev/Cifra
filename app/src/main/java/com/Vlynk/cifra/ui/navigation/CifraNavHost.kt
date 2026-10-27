@@ -40,17 +40,20 @@ fun CifraNavHost(
         }
 
         composable<VaultHome> {
-            PlaceholderDestinationScreen(
-                title = "Secret Vault (VaultHome)",
-                onBack = { navController.popBackStack() }
+            com.Vlynk.cifra.ui.vault.VaultHomeScreen(
+                onNoteClick = { noteId -> navController.navigate(NoteEditor(noteId)) },
+                onNavigateToCreate = { navController.navigate(NoteEditor(null)) },
+                onNavigateToSettings = { navController.navigate(VaultSettings) },
+                onNavigateToTools = { navController.navigate(Tools) },
+                onClose = { navController.popBackStack() }
             )
         }
 
         composable<NoteEditor> { backStackEntry ->
             val route = backStackEntry.toRoute<NoteEditor>()
-            PlaceholderDestinationScreen(
-                title = "Note Editor (NoteEditor) - ID: ${route.noteId ?: "New"}",
-                onBack = { navController.popBackStack() }
+            com.Vlynk.cifra.ui.vault.NoteEditorScreen(
+                noteId = route.noteId,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
@@ -64,6 +67,13 @@ fun CifraNavHost(
         composable<Tools> {
             PlaceholderDestinationScreen(
                 title = "Tools (Tools)",
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<VaultSettings> {
+            PlaceholderDestinationScreen(
+                title = "Vault Settings (VaultSettings)",
                 onBack = { navController.popBackStack() }
             )
         }
