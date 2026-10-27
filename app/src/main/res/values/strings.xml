@@ -36,6 +36,31 @@
     <string name="editor_delete_dialog_cancel">Cancel</string>
     <string name="editor_delete_dialog_confirm">Delete note</string>
 
+    <!-- PIN Screen -->
+    <string name="pin_title_create">Crear PIN del cofre</string>
+    <string name="pin_title_verify_current">Verificar PIN actual</string>
+    <string name="pin_title_new">Nuevo PIN</string>
+    <string name="pin_subtitle_create">Solo dígitos · entre 4 y 6 caracteres.</string>
+    <string name="pin_subtitle_verify">Introduce tu PIN actual para continuar.</string>
+    <string name="pin_label_current">PIN actual</string>
+    <string name="pin_label_new">Introduce tu PIN</string>
+    <string name="pin_label_confirm">Confirmar PIN</string>
+    <string name="pin_action_create">Crear PIN</string>
+    <string name="pin_action_change">Cambiar PIN</string>
+    <string name="pin_action_verify">Verificar</string>
+    <string name="pin_action_cancel">Cancelar</string>
+    <string name="pin_error_length">El PIN debe tener entre 4 y 6 dígitos.</string>
+    <string name="pin_error_mismatch">Los PINs no coinciden.</string>
+    <string name="pin_error_incorrect">PIN incorrecto. Intenta de nuevo.</string>
+    <string name="pin_error_save_failed">Error al guardar el PIN. Intenta de nuevo.</string>
+
+    <!-- Settings & Tools -->
+    <string name="vault_settings_title">Ajustes del cofre</string>
+    <string name="vault_settings_change_pin">Cambiar PIN</string>
+    <string name="vault_settings_back">Volver</string>
+    <string name="tools_title">Herramientas</string>
+    <string name="tools_coming_soon">Próximamente: división de cuentas y conversor de unidades.</string>
+
     <!-- Accessibility Descriptions -->
     <string name="desc_history">Calculation history</string>
     <string name="desc_backspace">Backspace</string>

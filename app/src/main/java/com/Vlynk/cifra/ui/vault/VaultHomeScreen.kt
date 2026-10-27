@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -404,7 +405,9 @@ private fun VaultBottomNavigation(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .navigationBarsPadding(),
         color = ColorVoid
     ) {
         Row(
@@ -545,5 +548,32 @@ private fun SearchIcon(
             strokeWidth = stroke,
             cap = StrokeCap.Round
         )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, backgroundColor = 0xFF08090A)
+@Composable
+private fun VaultHomeScreenPreview() {
+    com.Vlynk.cifra.ui.theme.CifraTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(ColorVoid)
+                .padding(20.dp)
+        ) {
+            VaultHeader(onSettingsClick = {}, onCloseClick = {})
+            Spacer(Modifier.height(16.dp))
+            VaultSearchBar(query = "", onQueryChange = {})
+            Spacer(Modifier.height(16.dp))
+            NoteItemRow(
+                note = com.Vlynk.cifra.domain.model.Note(
+                    id = 1L,
+                    title = "Secret Passwords",
+                    content = "Server root: admin/secret123",
+                    createdAt = System.currentTimeMillis()
+                ),
+                onClick = {}
+            )
+        }
     }
 }

@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -108,6 +110,8 @@ fun NoteEditorScreen(
             .fillMaxSize()
             .background(ColorVoid)
             .statusBarsPadding()
+            .navigationBarsPadding()
+            .imePadding()
     ) {
         Column(
             modifier = Modifier
@@ -464,5 +468,38 @@ private fun TrashIcon(
             strokeWidth = stroke,
             cap = StrokeCap.Round
         )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, backgroundColor = 0xFF08090A)
+@Composable
+private fun NoteEditorScreenPreview() {
+    com.Vlynk.cifra.ui.theme.CifraTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(ColorVoid)
+                .padding(20.dp)
+        ) {
+            EditorTopBar(
+                isNew = false,
+                onBackClick = {},
+                onDeleteClick = {},
+                onSaveClick = {}
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "Meeting Notes",
+                color = ColorPaper,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = "Top secret project discussion...",
+                color = ColorBone,
+                fontSize = 16.sp
+            )
+        }
     }
 }

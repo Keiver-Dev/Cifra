@@ -39,6 +39,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.Vlynk.cifra.R
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
@@ -123,9 +125,9 @@ fun SetPinScreen(
 
             // Title
             val title = when {
-                mode == PinScreenMode.Change && uiState.isVerifyingCurrent -> "Verificar PIN actual"
-                mode == PinScreenMode.Change -> "Nuevo PIN"
-                else -> "Crear PIN del cofre"
+                mode == PinScreenMode.Change && uiState.isVerifyingCurrent -> stringResource(R.string.pin_title_verify_current)
+                mode == PinScreenMode.Change -> stringResource(R.string.pin_title_new)
+                else -> stringResource(R.string.pin_title_create)
             }
             Text(
                 text = title,
@@ -139,9 +141,9 @@ fun SetPinScreen(
 
             val subtitle = when {
                 mode == PinScreenMode.Change && uiState.isVerifyingCurrent ->
-                    "Introduce tu PIN actual para continuar."
+                    stringResource(R.string.pin_subtitle_verify)
                 else ->
-                    "Solo dígitos · entre 4 y 6 caracteres."
+                    stringResource(R.string.pin_subtitle_create)
             }
             Text(
                 text = subtitle,
@@ -160,7 +162,7 @@ fun SetPinScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     PinField(
-                        label = "PIN actual",
+                        label = stringResource(R.string.pin_label_current),
                         value = uiState.currentPin,
                         onValueChange = viewModel::onCurrentPinChange,
                         error = uiState.currentPinError,
@@ -169,7 +171,7 @@ fun SetPinScreen(
                     )
                     Spacer(Modifier.height(24.dp))
                     PinActionButton(
-                        text = "Continuar",
+                        text = stringResource(R.string.pin_action_verify),
                         enabled = !uiState.isLoading && uiState.currentPin.length >= 4,
                         isLoading = uiState.isLoading,
                         onClick = viewModel::onVerifyCurrentPin
@@ -185,7 +187,7 @@ fun SetPinScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     PinField(
-                        label = "Nuevo PIN",
+                        label = stringResource(R.string.pin_label_new),
                         value = uiState.newPin,
                         onValueChange = viewModel::onNewPinChange,
                         error = uiState.newPinError,
@@ -195,7 +197,7 @@ fun SetPinScreen(
                     Spacer(Modifier.height(20.dp))
 
                     PinField(
-                        label = "Confirmar PIN",
+                        label = stringResource(R.string.pin_label_confirm),
                         value = uiState.confirmPin,
                         onValueChange = viewModel::onConfirmPinChange,
                         error = uiState.confirmPinError,
@@ -219,7 +221,11 @@ fun SetPinScreen(
                     Spacer(Modifier.height(32.dp))
 
                     PinActionButton(
-                        text = if (mode == PinScreenMode.Setup) "Crear PIN" else "Cambiar PIN",
+                        text = if (mode == PinScreenMode.Setup) {
+                            stringResource(R.string.pin_action_create)
+                        } else {
+                            stringResource(R.string.pin_action_change)
+                        },
                         enabled = !uiState.isLoading &&
                                 uiState.newPin.length >= 4 &&
                                 uiState.confirmPin.length >= 4,
@@ -234,7 +240,7 @@ fun SetPinScreen(
             // Cancel / Back
             androidx.compose.material3.TextButton(onClick = onNavigateBack) {
                 Text(
-                    text = "Cancelar",
+                    text = stringResource(R.string.pin_action_cancel),
                     color = ColorAsh,
                     fontSize = 14.sp
                 )
