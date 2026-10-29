@@ -38,6 +38,8 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -101,10 +103,13 @@ fun NoteEditorScreen(
         }
     }
 
-    // Intercept hardware/gesture back to auto-save unsaved changes
+    // Intercept hardware/gesture back to auto-save unsaved changes safely
     BackHandler {
-        viewModel.saveOnBack()
-        onNavigateBack()
+        if (state.hasUnsavedChanges && !state.isEmpty) {
+            viewModel.save()
+        } else {
+            onNavigateBack()
+        }
     }
 
     Box(
@@ -124,8 +129,11 @@ fun NoteEditorScreen(
             EditorTopBar(
                 isNew = state.isNew,
                 onBackClick = {
-                    viewModel.saveOnBack()
-                    onNavigateBack()
+                    if (state.hasUnsavedChanges && !state.isEmpty) {
+                        viewModel.save()
+                    } else {
+                        onNavigateBack()
+                    }
                 },
                 onDeleteClick = { viewModel.showDeleteDialog(true) },
                 onSaveClick = { viewModel.save() }
@@ -232,6 +240,8 @@ private fun EditorTopBar(
     onSaveClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val backDesc = stringResource(R.string.desc_back)
+    val deleteDesc = stringResource(R.string.desc_delete)
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -243,7 +253,8 @@ private fun EditorTopBar(
             color = ColorObsidian,
             modifier = Modifier
                 .size(40.dp)
-                .clickable(onClick = onBackClick)
+                .clickable(onClickLabel = backDesc, onClick = onBackClick)
+                .semantics { contentDescription = backDesc }
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -264,7 +275,8 @@ private fun EditorTopBar(
                     color = ColorObsidian,
                     modifier = Modifier
                         .size(40.dp)
-                        .clickable(onClick = onDeleteClick)
+                        .clickable(onClickLabel = deleteDesc, onClick = onDeleteClick)
+                        .semantics { contentDescription = deleteDesc }
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize(),

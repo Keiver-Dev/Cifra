@@ -16,20 +16,24 @@ class EvaluateExpressionUseCase(
 ) {
     /**
      * Executes evaluation of the given [expression].
+     * @param saveToHistory whether to record this evaluation in [historyRepository].
+     *                      Defaults to true; pass false for stealth operations like failed PIN attempts.
      * @return [Result.success] with the formatted string on success,
      *         or [Result.failure] with [CalculatorError] on failure.
      */
-    operator fun invoke(expression: String): Result<String> {
+    operator fun invoke(expression: String, saveToHistory: Boolean = true): Result<String> {
         val evalResult = evaluator.evaluate(expression)
         return evalResult.fold(
             onSuccess = { bigDecimal ->
                 val formatted = formatter.format(bigDecimal)
-                historyRepository.addEntry(
-                    HistoryEntry(
-                        expression = expression,
-                        result = formatted
+                if (saveToHistory) {
+                    historyRepository.addEntry(
+                        HistoryEntry(
+                            expression = expression,
+                            result = formatted
+                        )
                     )
-                )
+                }
                 Result.success(formatted)
             },
             onFailure = { error ->

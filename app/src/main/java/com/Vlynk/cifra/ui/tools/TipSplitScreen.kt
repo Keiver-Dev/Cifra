@@ -32,6 +32,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -144,7 +146,7 @@ fun TipSplitScreen(
             colors = ButtonDefaults.buttonColors(containerColor = ColorAcidLime, contentColor = ColorVoid)
         ) {
             Text(
-                text = "Calcular",
+                text = stringResource(R.string.tool_calculate),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -189,6 +191,7 @@ fun TipSplitScreen(
 
 @Composable
 internal fun ToolTopBar(title: String, onBack: () -> Unit) {
+    val backDesc = stringResource(R.string.desc_back)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -201,7 +204,8 @@ internal fun ToolTopBar(title: String, onBack: () -> Unit) {
             color = ColorObsidian,
             modifier = Modifier
                 .size(40.dp)
-                .clickable { onBack() }
+                .clickable(onClickLabel = backDesc) { onBack() }
+                .semantics { contentDescription = backDesc }
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                 BackArrowIcon(tint = ColorBone, modifier = Modifier.size(16.dp))

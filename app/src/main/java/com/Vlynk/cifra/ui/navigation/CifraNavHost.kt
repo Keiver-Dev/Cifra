@@ -48,12 +48,21 @@ import com.Vlynk.cifra.ui.tools.ToolsScreen
 
 import androidx.navigation.NavDestination.Companion.hasRoute
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.Vlynk.cifra.CifraApp
+import com.Vlynk.cifra.ui.tools.UnitConverterScreen
+
 @Composable
 fun CifraNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val cifraApp = context.applicationContext as? CifraApp
+    val hasPinState by (cifraApp?.container?.pinRepository?.hasPin()
+        ?: kotlinx.coroutines.flow.flowOf(true)).collectAsStateWithLifecycle(initialValue = null)
 
     // Security & privacy (6.1): FLAG_SECURE while vault screens are open, cleared on Calculator
     androidx.compose.runtime.DisposableEffect(navController) {
@@ -90,9 +99,20 @@ fun CifraNavHost(
         }
     }
 
+    if (hasPinState == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(ColorVoid)
+        )
+        return
+    }
+
+    val startRoute: Any = if (hasPinState == false) SetPin else Calculator
+
     NavHost(
         navController = navController,
-        startDestination = Calculator,
+        startDestination = startRoute,
         modifier = modifier
     ) {
         composable<Calculator> {
@@ -143,10 +163,16 @@ fun CifraNavHost(
             SetPinScreen(
                 mode = PinScreenMode.Setup,
                 onSuccess = {
-                    // First time: PIN created, go back to calculator
-                    navController.popBackStack(Calculator, inclusive = false)
+                    // First time: PIN created, replace SetPin with Calculator
+                    navController.navigate(Calculator) {
+                        popUpTo(SetPin) { inclusive = true }
+                    }
                 },
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = {
+                    navController.navigate(Calculator) {
+                        popUpTo(SetPin) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -162,6 +188,7 @@ fun CifraNavHost(
             ToolsScreen(
                 onNavigateToTipSplit = { navController.navigate(TipSplit) },
                 onNavigateToDiscount = { navController.navigate(Discount) },
+                onNavigateToUnitConverter = { navController.navigate(UnitConverter) },
                 onNavigateBack = { navController.popBackStack() }
             )
         }
@@ -178,60 +205,16 @@ fun CifraNavHost(
             )
         }
 
+        composable<UnitConverter> {
+            UnitConverterScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
         composable<VaultSettings> {
             VaultSettingsPlaceholderScreen(
                 onChangePin = { navController.navigate(ChangePin) },
                 onBack = { navController.popBackStack() }
-            )
-        }
-    }
-}
-
-@Composable
-private fun PlaceholderDestinationScreen(
-    title: String,
-    subtitle: String = "",
-    onBack: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(ColorVoid)
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = title,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = ColorBone
-        )
-
-        if (subtitle.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = subtitle,
-                fontSize = 14.sp,
-                color = ColorFog
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = onBack,
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = ColorAcidLime,
-                contentColor = ColorVoid
-            )
-        ) {
-            Text(
-                text = stringResource(R.string.vault_settings_back),
-                fontWeight = FontWeight.Bold
             )
         }
     }

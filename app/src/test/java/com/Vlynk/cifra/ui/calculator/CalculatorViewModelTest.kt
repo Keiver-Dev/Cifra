@@ -372,7 +372,7 @@ class CalculatorViewModelTest {
     }
 
     @Test
-    fun `equals with no PIN configured emits NavigateToSetPin and clears display`() = runTest {
+    fun `equals with no PIN configured behaves as normal calculator without interrupting calculation`() = runTest {
         val vm = pinViewModel(correctPin = null, storedPinExists = false)
 
         val events = mutableListOf<CalculatorEvent>()
@@ -385,15 +385,44 @@ class CalculatorViewModelTest {
         vm.onAction(CalculatorAction.Equals)
         advanceUntilIdle()
 
-        assertTrue(
-            "Expected NavigateToSetPin event when no PIN is set",
-            events.any { it is CalculatorEvent.NavigateToSetPin }
-        )
+        // Does NOT intercept with NavigateToSetPin; yields normal calculation result
+        assertTrue(events.isEmpty())
         val state = vm.uiState.value
-        assertEquals("", state.expression)
-        assertEquals("", state.result)
+        assertEquals("4567", state.result)
 
         job.cancel()
+    }
+
+    @Test
+    fun `failed PIN attempt evaluates as number but leaves no trace in history`() = runTest {
+        val historyRepo = HistoryRepository()
+        val evaluator = Evaluator()
+        val formatter = NumberFormatter()
+        val evaluateUseCase = EvaluateExpressionUseCase(evaluator, formatter, historyRepo)
+
+        val vm = CalculatorViewModel(
+            evaluateExpressionUseCase = evaluateUseCase,
+            historyRepository = historyRepo,
+            verifyPin = { it == "9999" },
+            hasPinFlow = flowOf(true)
+        )
+
+        // Try wrong PIN "1234"
+        vm.onAction(CalculatorAction.Digit(1))
+        vm.onAction(CalculatorAction.Digit(2))
+        vm.onAction(CalculatorAction.Digit(3))
+        vm.onAction(CalculatorAction.Digit(4))
+        vm.onAction(CalculatorAction.Equals)
+        advanceUntilIdle()
+
+        // Result displays without vault clue
+        assertEquals("1234", vm.uiState.value.result)
+
+        // History must be empty: ZERO hints, leave no trace!
+        assertTrue(
+            "Calculation history must remain empty on failed PIN attempts",
+            historyRepo.history.value.isEmpty()
+        )
     }
 
     @Test

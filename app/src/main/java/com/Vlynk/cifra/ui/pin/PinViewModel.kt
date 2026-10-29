@@ -119,11 +119,14 @@ class PinViewModel(
      * In Change mode: verify the current PIN before moving to the new PIN step.
      * In Setup mode: this step is skipped.
      */
-    fun onVerifyCurrentPin() {
+    fun onVerifyCurrentPin(
+        errorLength: String = "El PIN debe tener entre 4 y 6 dígitos.",
+        errorIncorrect: String = "PIN incorrecto. Intenta de nuevo."
+    ) {
         val state = _uiState.value
         val pin = state.currentPin
 
-        val error = validateLength(pin)
+        val error = validateLength(pin, errorLength)
         if (error != null) {
             _uiState.update { it.copy(currentPinError = error) }
             return
@@ -139,7 +142,7 @@ class PinViewModel(
                     it.copy(
                         isLoading = false,
                         currentPin = "",
-                        currentPinError = "PIN incorrecto. Intenta de nuevo."
+                        currentPinError = errorIncorrect
                     )
                 }
             }
@@ -150,27 +153,31 @@ class PinViewModel(
      * Validates both PIN fields and, if valid, hashes and stores the PIN.
      * On success sets [PinUiState.isSaved] = true — the screen should navigate away.
      */
-    fun onSave() {
+    fun onSave(
+        errorLength: String = "El PIN debe tener entre 4 y 6 dígitos.",
+        errorMismatch: String = "Los PINs no coinciden.",
+        errorSaveFailed: String = "Error al guardar el PIN. Intenta de nuevo."
+    ) {
         val state = _uiState.value
         val newPin = state.newPin
         val confirmPin = state.confirmPin
 
         var hasError = false
 
-        val newError = validateLength(newPin)
+        val newError = validateLength(newPin, errorLength)
         if (newError != null) {
             _uiState.update { it.copy(newPinError = newError) }
             hasError = true
         }
 
-        val confirmError = validateLength(confirmPin)
+        val confirmError = validateLength(confirmPin, errorLength)
         if (confirmError != null) {
             _uiState.update { it.copy(confirmPinError = confirmError) }
             hasError = true
         }
 
         if (!hasError && newPin != confirmPin) {
-            _uiState.update { it.copy(confirmPinError = "Los PINs no coinciden.") }
+            _uiState.update { it.copy(confirmPinError = errorMismatch) }
             hasError = true
         }
 
@@ -183,7 +190,7 @@ class PinViewModel(
                 _uiState.update { it.copy(isLoading = false, isSaved = true) }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(isLoading = false, globalError = "Error al guardar el PIN. Intenta de nuevo.")
+                    it.copy(isLoading = false, globalError = errorSaveFailed)
                 }
             }
         }
@@ -193,9 +200,11 @@ class PinViewModel(
     // Helpers
     // -------------------------------------------------------------------------
 
-    private fun validateLength(pin: String): String? = when {
-        pin.length < 4 -> "El PIN debe tener entre 4 y 6 dígitos."
-        pin.length > 6 -> "El PIN debe tener entre 4 y 6 dígitos."
+    private fun validateLength(
+        pin: String,
+        errorMessage: String = "El PIN debe tener entre 4 y 6 dígitos."
+    ): String? = when {
+        pin.length < 4 || pin.length > 6 -> errorMessage
         else -> null
     }
 }

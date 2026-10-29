@@ -33,3 +33,6 @@ data object TipSplit
 
 @Serializable
 data object Discount
+
+@Serializable
+data object UnitConverter
