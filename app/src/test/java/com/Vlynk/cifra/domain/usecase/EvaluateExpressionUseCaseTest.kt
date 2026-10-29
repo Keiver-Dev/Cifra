@@ -80,4 +80,15 @@ class EvaluateExpressionUseCaseTest {
         assertTrue(result.exceptionOrNull() is CalculatorError.IncompleteExpression)
         assertTrue(historyRepository.history.value.isEmpty())
     }
+
+    @Test
+    fun `evaluation with saveToHistory false formats result without adding to history`() {
+        val result = useCase("1234", saveToHistory = false)
+
+        assertTrue(result.isSuccess)
+        assertEquals("1234", result.getOrNull())
+
+        val history = historyRepository.history.value
+        assertTrue(history.isEmpty())
+    }
 }

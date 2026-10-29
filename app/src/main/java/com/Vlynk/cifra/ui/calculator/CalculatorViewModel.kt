@@ -378,24 +378,19 @@ class CalculatorViewModel(
             // PIN path — async because DataStore reads are suspend
             viewModelScope.launch {
                 val pinIsSet = hasPinFlow.first()
-                if (!pinIsSet) {
-                    // First run: guide user to set a PIN, leave no trace
-                    clearForNavigation()
-                    _events.send(CalculatorEvent.NavigateToSetPin)
-                    return@launch
-                }
-                if (verifyPin(expr)) {
+                if (pinIsSet && verifyPin(expr)) {
                     // ✅ Correct PIN — open the vault without a trace
                     clearForNavigation()
                     _events.send(CalculatorEvent.NavigateToVault)
                 } else {
-                    // ❌ Wrong PIN — evaluate normally, zero hints
-                    evaluateNormally(expr)
+                    // ❌ Wrong PIN or no PIN configured yet — evaluate as a plain number without saving to history
+                    // Leave zero trace of attempted PINs in calculation history
+                    evaluateNormally(expr, saveToHistory = false)
                 }
             }
         } else {
-            // Pure arithmetic — synchronous, no PIN involved
-            evaluateNormally(expr)
+            // Pure arithmetic — synchronous, save to calculation history
+            evaluateNormally(expr, saveToHistory = true)
         }
     }
 
@@ -434,8 +429,8 @@ class CalculatorViewModel(
         }
     }
 
-    private fun evaluateNormally(expr: String) {
-        val evaluationResult = evaluateExpressionUseCase(expr)
+    private fun evaluateNormally(expr: String, saveToHistory: Boolean = true) {
+        val evaluationResult = evaluateExpressionUseCase(expr, saveToHistory = saveToHistory)
 
         evaluationResult.fold(
             onSuccess = { formattedResult ->

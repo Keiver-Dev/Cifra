@@ -4,8 +4,11 @@ import com.Vlynk.cifra.data.local.NoteDao
 import com.Vlynk.cifra.data.local.toDomain
 import com.Vlynk.cifra.data.local.toEntity
 import com.Vlynk.cifra.domain.model.Note
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 /**
  * Repository contract for managing vault notes.
@@ -38,19 +41,23 @@ class NoteRepositoryImpl(
         }
     }
 
-    override suspend fun getNote(id: Long): Note? {
-        return noteDao.getById(id)?.toDomain()
+    override suspend fun getNote(id: Long): Note? = withContext(Dispatchers.IO) {
+        noteDao.getById(id)?.toDomain()
     }
 
-    override suspend fun saveNote(note: Note): Long {
-        return noteDao.upsert(note.toEntity())
+    override suspend fun saveNote(note: Note): Long = withContext(Dispatchers.IO + NonCancellable) {
+        noteDao.upsert(note.toEntity())
     }
 
     override suspend fun deleteNote(id: Long) {
-        noteDao.deleteById(id)
+        withContext(Dispatchers.IO + NonCancellable) {
+            noteDao.deleteById(id)
+        }
     }
 
     override suspend fun deleteNote(note: Note) {
-        noteDao.delete(note.toEntity())
+        withContext(Dispatchers.IO + NonCancellable) {
+            noteDao.delete(note.toEntity())
+        }
     }
 }

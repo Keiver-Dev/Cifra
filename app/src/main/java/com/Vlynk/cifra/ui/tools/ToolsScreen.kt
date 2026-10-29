@@ -48,6 +48,9 @@ import com.Vlynk.cifra.ui.theme.ColorPaper
 import com.Vlynk.cifra.ui.theme.ColorSmoke
 import com.Vlynk.cifra.ui.theme.ColorVoid
 
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+
 /**
  * Tools menu screen showing available calculator utilities.
  * Each tool card navigates to a dedicated calculator screen.
@@ -56,9 +59,11 @@ import com.Vlynk.cifra.ui.theme.ColorVoid
 fun ToolsScreen(
     onNavigateToTipSplit: () -> Unit,
     onNavigateToDiscount: () -> Unit,
+    onNavigateToUnitConverter: () -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val backDesc = stringResource(R.string.desc_back)
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -80,7 +85,8 @@ fun ToolsScreen(
                 color = ColorObsidian,
                 modifier = Modifier
                     .size(40.dp)
-                    .clickable { onNavigateBack() }
+                    .clickable(onClickLabel = backDesc) { onNavigateBack() }
+                    .semantics { contentDescription = backDesc }
             ) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                     BackArrowIcon(tint = ColorBone, modifier = Modifier.size(16.dp))
@@ -123,6 +129,16 @@ fun ToolsScreen(
             description = stringResource(R.string.tools_discount_desc),
             onClick = onNavigateToDiscount,
             delayMs = 80
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        ToolCard(
+            icon = { RulerIcon(tint = ColorAcidLime, modifier = Modifier.size(26.dp)) },
+            title = stringResource(R.string.tools_unit_converter_title),
+            description = stringResource(R.string.tools_unit_converter_desc),
+            onClick = onNavigateToUnitConverter,
+            delayMs = 160
         )
     }
 }
@@ -221,10 +237,37 @@ private fun DiscountIconSmall(tint: Color, modifier: Modifier = Modifier) {
     }
 }
 
+@Composable
+private fun RulerIcon(tint: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val stroke = 2.dp.toPx()
+        val w = size.width
+        val h = size.height
+
+        // Outer ruler border
+        drawRoundRect(
+            color = tint,
+            topLeft = Offset(w * 0.15f, h * 0.15f),
+            size = androidx.compose.ui.geometry.Size(w * 0.7f, h * 0.7f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()),
+            style = Stroke(stroke)
+        )
+        // Tick marks
+        drawLine(tint, Offset(w * 0.15f, h * 0.32f), Offset(w * 0.42f, h * 0.32f), stroke, StrokeCap.Round)
+        drawLine(tint, Offset(w * 0.15f, h * 0.50f), Offset(w * 0.52f, h * 0.50f), stroke, StrokeCap.Round)
+        drawLine(tint, Offset(w * 0.15f, h * 0.68f), Offset(w * 0.42f, h * 0.68f), stroke, StrokeCap.Round)
+    }
+}
+
 @androidx.compose.ui.tooling.preview.Preview(showBackground = true, backgroundColor = 0xFF08090A)
 @Composable
 private fun ToolsScreenPreview() {
     com.Vlynk.cifra.ui.theme.CifraTheme {
-        ToolsScreen(onNavigateToTipSplit = {}, onNavigateToDiscount = {}, onNavigateBack = {})
+        ToolsScreen(
+            onNavigateToTipSplit = {},
+            onNavigateToDiscount = {},
+            onNavigateToUnitConverter = {},
+            onNavigateBack = {}
+        )
     }
 }

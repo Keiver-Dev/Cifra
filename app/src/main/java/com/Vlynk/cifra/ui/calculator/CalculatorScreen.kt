@@ -20,6 +20,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -141,6 +143,7 @@ fun CalculatorScreen(
 
                     Keypad(
                         onAction = viewModel::onAction,
+                        canBackspace = state.expression.isNotEmpty(),
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1.6f)
@@ -170,6 +173,7 @@ private fun TopBar(
     onHistoryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val historyDesc = stringResource(R.string.desc_history)
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -190,7 +194,13 @@ private fun TopBar(
             color = ColorObsidian,
             modifier = Modifier
                 .size(40.dp)
-                .clickable { onHistoryClick() }
+                .clickable(
+                    onClickLabel = historyDesc,
+                    onClick = onHistoryClick
+                )
+                .semantics {
+                    contentDescription = historyDesc
+                }
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -234,43 +244,6 @@ private fun HistoryIcon(
             end = Offset(center.x + radius * 0.45f, center.y),
             strokeWidth = strokeWidth,
             cap = StrokeCap.Round
-        )
-    }
-}
-
-@Composable
-private fun VaultTriggerIcon(
-    tint: Color,
-    modifier: Modifier = Modifier
-) {
-    Canvas(modifier = modifier) {
-        val stroke = 1.8.dp.toPx()
-        val w = size.width
-        val h = size.height
-
-        // Lock shackle
-        drawArc(
-            color = tint,
-            startAngle = 180f,
-            sweepAngle = 180f,
-            useCenter = false,
-            topLeft = Offset(w * 0.25f, h * 0.1f),
-            size = androidx.compose.ui.geometry.Size(w * 0.5f, h * 0.45f),
-            style = Stroke(width = stroke, cap = StrokeCap.Round)
-        )
-        // Lock body
-        drawRoundRect(
-            color = tint,
-            topLeft = Offset(w * 0.15f, h * 0.4f),
-            size = androidx.compose.ui.geometry.Size(w * 0.7f, h * 0.52f),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()),
-            style = Stroke(width = stroke)
-        )
-        // Keyhole
-        drawCircle(
-            color = tint,
-            radius = 2.dp.toPx(),
-            center = Offset(w / 2, h * 0.62f)
         )
     }
 }
