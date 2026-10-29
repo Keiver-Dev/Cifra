@@ -245,6 +245,8 @@ private fun VaultHeader(
             fontWeight = FontWeight.Bold
         )
 
+        val settingsDesc = stringResource(R.string.desc_settings)
+        val closeDesc = stringResource(R.string.desc_close)
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             // Settings button
             Surface(
@@ -252,7 +254,8 @@ private fun VaultHeader(
                 color = ColorObsidian,
                 modifier = Modifier
                     .size(40.dp)
-                    .clickable { onSettingsClick() }
+                    .clickable(onClickLabel = settingsDesc) { onSettingsClick() }
+                    .semantics { contentDescription = settingsDesc }
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -268,7 +271,8 @@ private fun VaultHeader(
                 color = ColorObsidian,
                 modifier = Modifier
                     .size(40.dp)
-                    .clickable { onCloseClick() }
+                    .clickable(onClickLabel = closeDesc) { onCloseClick() }
+                    .semantics { contentDescription = closeDesc }
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -287,6 +291,8 @@ private fun VaultSearchBar(
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val searchDesc = stringResource(R.string.desc_search)
+    val clearDesc = stringResource(R.string.desc_clear)
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -300,7 +306,12 @@ private fun VaultSearchBar(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SearchIcon(tint = ColorFog, modifier = Modifier.size(18.dp))
+            SearchIcon(
+                tint = ColorFog,
+                modifier = Modifier
+                    .size(18.dp)
+                    .semantics { contentDescription = searchDesc }
+            )
             Spacer(modifier = Modifier.width(10.dp))
 
             Box(modifier = Modifier.weight(1f)) {
@@ -328,7 +339,8 @@ private fun VaultSearchBar(
                 Box(
                     modifier = Modifier
                         .size(24.dp)
-                        .clickable { onQueryChange("") },
+                        .clickable(onClickLabel = clearDesc) { onQueryChange("") }
+                        .semantics { contentDescription = clearDesc },
                     contentAlignment = Alignment.Center
                 ) {
                     CloseIcon(tint = ColorFog, modifier = Modifier.size(14.dp))

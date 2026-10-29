@@ -119,7 +119,7 @@ fun DiscountScreen(
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = ColorAcidLime, contentColor = ColorVoid)
         ) {
-            Text(text = "Calcular", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(text = stringResource(R.string.tool_calculate), fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
 
         // ── Results card ─────────────────────────────────────────────────────

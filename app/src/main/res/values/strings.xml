@@ -95,6 +95,21 @@
     <string name="discount_error_pct_range">El descuento debe estar entre 0 y 100 %</string>
 
 
+    <!-- Generic Tool Action -->
+    <string name="tool_calculate">Calcular</string>
+    <string name="vault_note_untitled">Sin título</string>
+
+    <!-- Unit Converter Screen -->
+    <string name="tools_unit_converter_title">Conversor de unidades</string>
+    <string name="tools_unit_converter_desc">Convierte longitud, peso y temperatura</string>
+    <string name="unit_title">Conversor de unidades</string>
+    <string name="unit_tab_length">Longitud</string>
+    <string name="unit_tab_weight">Peso</string>
+    <string name="unit_tab_temperature">Temperatura</string>
+    <string name="unit_label_from">De</string>
+    <string name="unit_label_to">A</string>
+    <string name="unit_swap">Invertir unidades</string>
+
     <!-- Accessibility Descriptions -->
     <string name="desc_history">Calculation history</string>
     <string name="desc_backspace">Backspace</string>
@@ -105,4 +120,5 @@
     <string name="desc_search">Search</string>
     <string name="desc_back">Back</string>
     <string name="desc_delete">Delete note</string>
+    <string name="desc_swap">Swap units</string>
 </resources>

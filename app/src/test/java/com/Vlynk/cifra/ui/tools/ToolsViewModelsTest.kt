@@ -94,4 +94,45 @@ class ToolsViewModelsTest {
         assertEquals("Must be between 0 and 100", state.error)
         assertNull(state.finalPrice)
     }
+
+    @Test
+    fun unitConverter_convertsLengthCorrectly() {
+        val viewModel = UnitConverterViewModel()
+        viewModel.onCategorySelect(UnitCategory.LENGTH)
+        viewModel.onInputValueChange("5")
+        viewModel.onFromUnitChange("km")
+        viewModel.onToUnitChange("m")
+
+        val state = viewModel.uiState.value
+        assertEquals("5000", state.convertedValue)
+    }
+
+    @Test
+    fun unitConverter_convertsWeightAndSwaps() {
+        val viewModel = UnitConverterViewModel()
+        viewModel.onCategorySelect(UnitCategory.WEIGHT)
+        viewModel.onInputValueChange("1")
+        viewModel.onFromUnitChange("kg")
+        viewModel.onToUnitChange("g")
+
+        assertEquals("1000", viewModel.uiState.value.convertedValue)
+
+        viewModel.swapUnits()
+        val swappedState = viewModel.uiState.value
+        assertEquals("g", swappedState.fromUnit)
+        assertEquals("kg", swappedState.toUnit)
+        assertEquals("0.001", swappedState.convertedValue)
+    }
+
+    @Test
+    fun unitConverter_convertsTemperature() {
+        val viewModel = UnitConverterViewModel()
+        viewModel.onCategorySelect(UnitCategory.TEMPERATURE)
+        viewModel.onInputValueChange("100")
+        viewModel.onFromUnitChange("°C")
+        viewModel.onToUnitChange("°F")
+
+        val state = viewModel.uiState.value
+        assertEquals("212", state.convertedValue)
+    }
 }

@@ -10,19 +10,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.Vlynk.cifra.ui.calculator.CalculatorAction
 
+import androidx.compose.ui.res.stringResource
+import com.Vlynk.cifra.R
+
 /**
  * 4x5 Calculator keypad with equally sized buttons.
  */
 @Composable
 fun Keypad(
     onAction: (CalculatorAction) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    canBackspace: Boolean = false
 ) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        // Row 1: C, (), %, ÷
+        // Row 1: ⌫/C, (), %, ÷
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -30,9 +34,19 @@ fun Keypad(
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             KeypadButton(
-                text = "C",
+                text = if (canBackspace) "⌫" else "C",
                 variant = KeypadButtonVariant.ACTION,
-                onClick = { onAction(CalculatorAction.Clear) },
+                contentDescription = stringResource(
+                    if (canBackspace) R.string.desc_backspace else R.string.desc_clear
+                ),
+                onClick = {
+                    if (canBackspace) {
+                        onAction(CalculatorAction.Backspace)
+                    } else {
+                        onAction(CalculatorAction.Clear)
+                    }
+                },
+                onLongClick = { onAction(CalculatorAction.Clear) },
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
@@ -40,6 +54,7 @@ fun Keypad(
             KeypadButton(
                 text = "()",
                 variant = KeypadButtonVariant.ACTION,
+                contentDescription = "Parentheses",
                 onClick = { onAction(CalculatorAction.Parentheses) },
                 modifier = Modifier
                     .weight(1f)
@@ -48,6 +63,7 @@ fun Keypad(
             KeypadButton(
                 text = "%",
                 variant = KeypadButtonVariant.ACTION,
+                contentDescription = "Percent",
                 onClick = { onAction(CalculatorAction.Percent) },
                 modifier = Modifier
                     .weight(1f)
@@ -56,6 +72,7 @@ fun Keypad(
             KeypadButton(
                 text = "÷",
                 variant = KeypadButtonVariant.OPERATOR,
+                contentDescription = "Divide",
                 onClick = { onAction(CalculatorAction.Operator("÷")) },
                 modifier = Modifier
                     .weight(1f)
@@ -220,6 +237,7 @@ fun Keypad(
             KeypadButton(
                 text = "=",
                 variant = KeypadButtonVariant.ACCENT,
+                contentDescription = stringResource(R.string.desc_equals),
                 onClick = { onAction(CalculatorAction.Equals) },
                 modifier = Modifier
                     .weight(1f)

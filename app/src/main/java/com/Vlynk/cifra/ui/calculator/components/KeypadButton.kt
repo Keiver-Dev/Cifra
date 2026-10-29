@@ -1,13 +1,13 @@
 package com.Vlynk.cifra.ui.calculator.components
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,6 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -39,12 +41,15 @@ enum class KeypadButtonVariant {
 /**
  * Reusable keypad button with comfortable touch target and distinct visual variants.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun KeypadButton(
     text: String,
     variant: KeypadButtonVariant,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+    onLongClick: (() -> Unit)? = null
 ) {
     val (backgroundColor, textColor) = when (variant) {
         KeypadButtonVariant.NUMBER -> ColorObsidian to ColorPaper
@@ -53,16 +58,25 @@ fun KeypadButton(
         KeypadButtonVariant.ACCENT -> ColorAcidLime to ColorVoid
     }
 
+    val semanticsModifier = if (contentDescription != null) {
+        Modifier.semantics { this.contentDescription = contentDescription }
+    } else Modifier
+
     Surface(
         modifier = modifier
             .defaultMinSize(minWidth = 56.dp, minHeight = 56.dp)
-            .padding(4.dp),
+            .padding(4.dp)
+            .then(semanticsModifier),
         shape = RoundedCornerShape(14.dp),
-        color = backgroundColor,
-        onClick = onClick
+        color = backgroundColor
     ) {
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick
+                ),
             contentAlignment = Alignment.Center
         ) {
             Text(
